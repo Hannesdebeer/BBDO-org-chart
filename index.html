@@ -1052,6 +1052,20 @@ document.addEventListener('keydown', e => {
       render();
     }
   });
+
+  // Force refresh when a new code version is deployed
+  const APP_VERSION = 1;
+  const vSnap = await db.ref('appVersion').once('value');
+  if (!vSnap.val()) {
+    await db.ref('appVersion').set(APP_VERSION);
+  } else if (vSnap.val() > APP_VERSION) {
+    location.reload(true);
+  }
+  db.ref('appVersion').on('value', snap => {
+    if (snap.val() && snap.val() > APP_VERSION) {
+      location.reload(true);
+    }
+  });
 })();
 </script>
 </body>
