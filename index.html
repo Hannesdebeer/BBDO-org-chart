@@ -7,6 +7,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
+  /* Password gate */
+  .pw-gate{position:fixed;inset:0;z-index:9999;background:#08080d;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:'Inter',sans-serif;}
+  .pw-gate.hidden{display:none;}
+  .pw-gate h1{color:#e8e8ed;font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:-0.5px;}
+  .pw-gate input{width:260px;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#e8e8ed;font-size:14px;font-family:inherit;outline:none;text-align:center;}
+  .pw-gate input:focus{border-color:#6366f1;}
+  .pw-gate input::placeholder{color:#55556b;}
+  .pw-gate .pw-error{color:#ef4444;font-size:11px;margin-top:8px;opacity:0;}
+  .pw-gate .pw-error.show{opacity:1;}
+  .app-wrap{display:none;}
+  .app-wrap.unlocked{display:contents;}
+</style>
+<style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -290,6 +303,15 @@
 </head>
 <body>
 
+<!-- Password Gate -->
+<div class="pw-gate" id="pwGate">
+  <h1>BBDO Creative Department</h1>
+  <input type="password" id="pwInput" placeholder="Enter password" autofocus
+    onkeydown="if(event.key==='Enter')checkPw()">
+  <div class="pw-error" id="pwError">Wrong password</div>
+</div>
+
+<div class="app-wrap" id="appWrap">
 <!-- Toolbar -->
 <div class="toolbar">
   <span class="toolbar-brand">BBDO Restructure</span>
@@ -1067,6 +1089,32 @@ document.addEventListener('keydown', e => {
     }
   });
 })();
+</script>
+</div><!-- /app-wrap -->
+
+<script>
+// Password gate — hash check so password isn't plain text in source
+async function hashPw(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+const PW_HASH = 'abc1f97dbf54439b627cf6d046159ef9a17443e24ef991cd265eb93051b94c7b';
+async function checkPw() {
+  const val = document.getElementById('pwInput').value;
+  if (await hashPw(val) === PW_HASH) {
+    sessionStorage.setItem('bbdo_auth','1');
+    document.getElementById('pwGate').classList.add('hidden');
+    document.getElementById('appWrap').classList.add('unlocked');
+  } else {
+    document.getElementById('pwError').classList.add('show');
+    document.getElementById('pwInput').value = '';
+  }
+}
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem('bbdo_auth') === '1') {
+  document.getElementById('pwGate').classList.add('hidden');
+  document.getElementById('appWrap').classList.add('unlocked');
+}
 </script>
 </body>
 </html>
