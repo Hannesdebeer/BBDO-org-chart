@@ -7,19 +7,32 @@
       "color": "#6366f1",
       "dedicated": true,
       "leaders": [
-        { "id": "p-paulo-e", "name": "Paulo", "role": "Senior CD" },
-        { "id": "p-ant-e", "name": "Ant", "role": "Strat Director" },
-        { "id": "p-dennis", "name": "Dennis", "role": "CD" }
+        { "id": "p-satyen-e", "name": "Satyen", "role": "CD" }
       ],
       "members": [
-        { "id": "p-kyra", "name": "Kyra", "role": "SR CW", "alloc": "100%" },
-        { "id": "p-bijou", "name": "Bijou", "role": "SR CW", "alloc": "100%" },
-        { "id": "p-alison-e", "name": "Alison", "role": "MID CW", "alloc": "100%" },
-        { "id": "p-ida-e", "name": "Ida", "role": "Design", "alloc": "100%" },
-        { "id": "p-andre", "name": "André", "role": "JR AD", "alloc": "100%" },
-        { "id": "p-tbd1", "name": "TBD", "role": "JR CW", "alloc": "100%" },
-        { "id": "p-tbd2", "name": "TBD", "role": "CW", "alloc": "100%" },
-        { "id": "p-tbd3", "name": "TBD", "role": "AD", "alloc": "100%" }
+        { "id": "p-paul-e", "name": "Paul", "role": "Writer", "alloc": "FL" },
+        { "id": "p-kyra-e", "name": "Kyra", "role": "Writer", "alloc": "FL" },
+        { "id": "p-alison-e", "name": "Alison", "role": "Writer", "alloc": "FL" },
+        { "id": "p-nino-e", "name": "Nino", "role": "Writer (support)" },
+        { "id": "p-tarek-e", "name": "Tarek", "role": "Writer", "alloc": "mostly (P&O)" },
+        { "id": "p-bijoy-e", "name": "Bijoy", "role": "Senior Art" },
+        { "id": "p-shibith-e", "name": "Shibith", "role": "Senior Art" },
+        { "id": "p-ibrahim-e", "name": "Ibrahim", "role": "Senior Art" },
+        { "id": "p-ida-e", "name": "Ida", "role": "Designer/AD" },
+        { "id": "p-shuja-e", "name": "Shuja", "role": "Senior Art", "alloc": "FL" },
+        { "id": "p-akshay-e", "name": "Akshay", "role": "Art", "alloc": "FL" },
+        { "id": "p-nesiya-e", "name": "Nesiya", "role": "Design", "alloc": "FL" },
+        { "id": "p-vishnu-e", "name": "Vishnu", "role": "Design", "alloc": "FL" },
+        { "id": "p-anas-e", "name": "Anas", "role": "Design", "alloc": "FL" },
+        { "id": "p-ross-e", "name": "Ross", "role": "Art", "alloc": "mostly (P&O)" },
+        { "id": "p-sameer-e", "name": "Sameer", "role": "Studio" },
+        { "id": "p-raja-e", "name": "Raja", "role": "Studio" },
+        { "id": "p-saheer-e", "name": "Saheer", "role": "Studio" },
+        { "id": "p-kailash-e", "name": "Kailash", "role": "Motion" },
+        { "id": "p-karthik-e", "name": "Karthik", "role": "Motion" },
+        { "id": "p-ujwal-e", "name": "Ujwal", "role": "Motion" },
+        { "id": "p-varun-e", "name": "Varun", "role": "Motion" },
+        { "id": "p-alisar-e", "name": "Alisar", "role": "Arabic Copy" }
       ],
       "clients": []
     },

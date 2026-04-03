@@ -957,10 +957,18 @@ document.addEventListener('keydown', e => {
   } catch(e) {}
 
   // Load from Firebase
+  function fixTeamArrays(d) {
+    if (!d.pool) d.pool = [];
+    if (d.teams) d.teams.forEach(t => {
+      if (!t.leaders) t.leaders = [];
+      if (!t.members) t.members = [];
+      if (!t.clients) t.clients = [];
+    });
+    return d;
+  }
   const snap = await db.ref('orgchart').once('value');
   if (snap.val() && snap.val().teams) {
-    data = snap.val();
-    if (!data.pool) data.pool = [];
+    data = fixTeamArrays(snap.val());
   } else {
     // First time — seed Firebase with default data
     data = JSON.parse(JSON.stringify(INITIAL));
@@ -976,8 +984,7 @@ document.addEventListener('keydown', e => {
     if (suppressRemoteUpdate) return;
     const remote = snap.val();
     if (remote && remote.teams) {
-      data = remote;
-      if (!data.pool) data.pool = [];
+      data = fixTeamArrays(remote);
       render();
     }
   });
