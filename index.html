@@ -600,12 +600,12 @@ function addPerson(teamId) {
   render(); autoSave();
   showToast(`Added ${name}`);
 }
-function addClient(teamId) {
-  const name = prompt('Client name:');
+function addClient(teamId, type='retainer') {
+  const name = prompt(`${type==='project'?'Project':'Retainer'} name:`);
   if (!name) return;
   saveState();
   const team = data.teams.find(t=>t.id===teamId);
-  if (team) team.clients.push({ id:uid(), name:name.toUpperCase(), type:'retainer' });
+  if (team) team.clients.push({ id:uid(), name:name.toUpperCase(), type });
   render(); autoSave();
   showToast(`Added ${name}`);
 }
@@ -860,13 +860,15 @@ function attachDrag() {
       e.preventDefault(); zone.classList.remove('drag-over');
       if(dragType!=='client'||!dragItem)return;
       const tgtTeam=zone.dataset.team;
-      if(tgtTeam===dragSourceTeam) return;
+      const tgtType=zone.dataset.clientType||'retainer';
+      if(tgtTeam===dragSourceTeam && dragItem.type===tgtType) return;
       saveState();
       const src=data.teams.find(t=>t.id===dragSourceTeam);
       src.clients=src.clients.filter(c=>c.id!==dragItem.id);
+      dragItem.type=tgtType;
       const tgt=data.teams.find(t=>t.id===tgtTeam);
       tgt.clients.push(dragItem);
-      showToast(`${dragItem.name} → ${tgt.name}`);
+      showToast(`${dragItem.name} → ${tgt.name} (${tgtType})`);
       render(); autoSave();
     });
   });
@@ -927,9 +929,16 @@ function renderTeam(team) {
       </div>
 
       <div class="clients-section">
-        <div class="section-label" style="padding:0 0 6px">Clients <span class="add-btn" onclick="addClient('${team.id}')" title="Add client">+</span></div>
-        <div class="clients-list" data-team="${team.id}">
-          ${team.clients.map(c => `
+        <div class="section-label" style="padding:0 0 6px">Retainers <span class="add-btn" onclick="addClient('${team.id}','retainer')" title="Add retainer">+</span></div>
+        <div class="clients-list" data-team="${team.id}" data-client-type="retainer">
+          ${team.clients.filter(c=>c.type==='retainer').map(c => `
+            <div class="client-tag ${c.type} ${searchQuery && c.name.toLowerCase().includes(searchQuery)?'search-match':''}" draggable="true" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+              ${c.name}<span class="ctx-del" onclick="removeClient('${c.id}')">✕</span>
+            </div>`).join('')}
+        </div>
+        <div class="section-label" style="padding:6px 0 6px">Projects <span class="add-btn" onclick="addClient('${team.id}','project')" title="Add project">+</span></div>
+        <div class="clients-list" data-team="${team.id}" data-client-type="project">
+          ${team.clients.filter(c=>c.type==='project').map(c => `
             <div class="client-tag ${c.type} ${searchQuery && c.name.toLowerCase().includes(searchQuery)?'search-match':''}" draggable="true" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
               ${c.name}<span class="ctx-del" onclick="removeClient('${c.id}')">✕</span>
             </div>`).join('')}
