@@ -160,6 +160,8 @@
   .person:hover { background:rgba(255,255,255,0.035); }
   .person:active { cursor:grabbing; }
   .person.dragging { opacity:0.2; }
+  .person.drop-before { border-top:2px solid var(--accent); margin-top:-1px; }
+  .person.drop-after { border-bottom:2px solid var(--accent); margin-bottom:-1px; }
   .person.leader { background:rgba(99,102,241,0.08); }
   .person.leader:hover { background:rgba(99,102,241,0.12); }
   .person.search-match { box-shadow:0 0 0 1px var(--amber); background:rgba(245,158,11,0.08); }
@@ -735,6 +737,17 @@ function moveToPool(personId) {
 // ═══════════════════════════════════════
 let dragType=null, dragItem=null, dragSourceTeam=null, dragSourceList=null;
 
+function getDragAfterElement(zone, y) {
+  const els = [...zone.querySelectorAll('.person:not(.dragging)')];
+  let closest = null, closestOffset = Number.POSITIVE_INFINITY;
+  for (const el of els) {
+    const box = el.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > -closestOffset) { closestOffset = -offset; closest = el; }
+  }
+  return closest;
+}
+
 function attachDrag() {
   // Person drag
   document.querySelectorAll('.person[draggable]').forEach(el => {
@@ -787,22 +800,54 @@ function attachDrag() {
 
   // Drop zones
   document.querySelectorAll('.people-list').forEach(zone => {
-    zone.addEventListener('dragover', e => { if(dragType!=='person')return; e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('dragover', e => {
+      if(dragType!=='person')return; e.preventDefault(); e.dataTransfer.dropEffect='move';
+      zone.classList.add('drag-over');
+      // Show drop indicator between people
+      const people = [...zone.querySelectorAll('.person:not(.dragging)')];
+      zone.querySelectorAll('.person').forEach(p=>p.classList.remove('drop-before','drop-after'));
+      const after = getDragAfterElement(zone, e.clientY);
+      if (after) after.classList.add('drop-before');
+      else if (people.length) people[people.length-1].classList.add('drop-after');
+    });
+    zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); zone.querySelectorAll('.person').forEach(p=>p.classList.remove('drop-before','drop-after')); });
     zone.addEventListener('drop', e => {
       e.preventDefault(); zone.classList.remove('drag-over');
+      zone.querySelectorAll('.person').forEach(p=>p.classList.remove('drop-before','drop-after'));
       if(dragType!=='person'||!dragItem)return;
       const tgtTeam=zone.dataset.team, tgtList=zone.dataset.list;
-      if(tgtTeam===dragSourceTeam && tgtList===dragSourceList) return;
+      // Find insert index based on drop position
+      const afterEl = getDragAfterElement(zone, e.clientY);
+      let insertIdx = -1;
+      if (afterEl) {
+        const afterId = afterEl.dataset.personId;
+        const tgtArr = tgtTeam==='__pool' ? data.pool : data.teams.find(t=>t.id===tgtTeam)[tgtList];
+        insertIdx = tgtArr.findIndex(p=>p.id===afterId);
+      }
+      // Skip if dropping in exact same position
+      if(tgtTeam===dragSourceTeam && tgtList===dragSourceList) {
+        const arr = tgtTeam==='__pool' ? data.pool : data.teams.find(t=>t.id===tgtTeam)[tgtList];
+        const curIdx = arr.findIndex(p=>p.id===dragItem.id);
+        if(insertIdx===-1 && curIdx===arr.length-1) return;
+        if(insertIdx===curIdx) return;
+      }
       saveState();
       // Remove from source
       if(dragSourceTeam==='__pool') { data.pool=data.pool.filter(p=>p.id!==dragItem.id); }
       else { const src=data.teams.find(t=>t.id===dragSourceTeam); src[dragSourceList]=src[dragSourceList].filter(p=>p.id!==dragItem.id); }
-      // Add to target
-      if(tgtTeam==='__pool') { data.pool.push(dragItem); }
-      else { const tgt=data.teams.find(t=>t.id===tgtTeam); tgt[tgtList].push(dragItem); }
-      const tgtName = tgtTeam==='__pool' ? 'Unassigned' : data.teams.find(t=>t.id===tgtTeam)?.name;
-      showToast(`${dragItem.name} → ${tgtName}`);
+      // Add to target at position
+      const tgtArr = tgtTeam==='__pool' ? data.pool : data.teams.find(t=>t.id===tgtTeam)[tgtList];
+      if(insertIdx===-1) { tgtArr.push(dragItem); }
+      else {
+        // Recalculate index after removal (in case same list)
+        const newIdx = afterEl ? tgtArr.findIndex(p=>p.id===afterEl.dataset.personId) : -1;
+        if(newIdx===-1) tgtArr.push(dragItem);
+        else tgtArr.splice(newIdx, 0, dragItem);
+      }
+      if(tgtTeam!==dragSourceTeam || tgtList!==dragSourceList) {
+        const tgtName = tgtTeam==='__pool' ? 'Unassigned' : data.teams.find(t=>t.id===tgtTeam)?.name;
+        showToast(`${dragItem.name} → ${tgtName}`);
+      }
       render(); autoSave();
     });
   });
