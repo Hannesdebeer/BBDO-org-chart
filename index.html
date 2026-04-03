@@ -1081,11 +1081,11 @@ document.addEventListener('keydown', e => {
   if (!vSnap.val()) {
     await db.ref('appVersion').set(APP_VERSION);
   } else if (vSnap.val() > APP_VERSION) {
-    window.location.href = window.location.pathname + '?v=' + Date.now();
+    sessionStorage.removeItem('bbdo_auth'); window.location.href = window.location.pathname + '?v=' + Date.now();
   }
   db.ref('appVersion').on('value', snap => {
     if (snap.val() && snap.val() > APP_VERSION) {
-      window.location.href = window.location.pathname + '?v=' + Date.now();
+      sessionStorage.removeItem('bbdo_auth'); window.location.href = window.location.pathname + '?v=' + Date.now();
     }
   });
 })();
