@@ -211,8 +211,9 @@
   .person-actions button.del:hover { background:rgba(239,68,68,0.15); color:var(--red); }
 
   .alloc-badge { font-size:8px; color:var(--green); font-weight:700; flex-shrink:0; }
+  .q-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(239,68,68,0.12); color:#f87171; font-weight:700; flex-shrink:0; transition:opacity .15s; }
   .fl-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(245,158,11,0.12); color:#fbbf24; font-weight:700; flex-shrink:0; transition:opacity .15s; }
-  .person:hover .fl-badge { opacity:0; pointer-events:none; }
+  .person:hover .fl-badge, .person:hover .q-badge { opacity:0; pointer-events:none; }
 
   /* Client tags */
   .clients-section { padding:6px 14px 12px; border-top:1px solid var(--card-border); margin-top:4px; }
@@ -743,6 +744,11 @@ function toggleFL(personId) {
   findPerson(personId, p => { p.freelancer = !p.freelancer; });
   render(); autoSave();
 }
+function toggleAnon(personId) {
+  saveState();
+  findPerson(personId, p => { p.anon = !p.anon; });
+  render(); autoSave();
+}
 function duplicatePerson(personId) {
   hideCtx(); saveState();
   findPerson(personId, p => {
@@ -925,8 +931,10 @@ function renderPerson(p, isLeader) {
         <div class="person-role" onclick="changeRole('${p.id}',this)">${p.role}</div>
       </div>
       ${p.alloc ? `<span class="alloc-badge">${p.alloc}</span>` : ''}
+      ${p.anon ? `<span class="q-badge">?</span>` : ''}
       ${p.freelancer ? `<span class="fl-badge">FL</span>` : ''}
       <div class="person-actions">
+        <button title="Toggle Unknown" onclick="event.stopPropagation();toggleAnon('${p.id}')" style="${p.anon?'color:#f59e0b;':''}">?</button>
         <button title="Toggle Freelancer" onclick="event.stopPropagation();toggleFL('${p.id}')" style="${p.freelancer?'color:#fbbf24;':''}">FL</button>
         <button title="Duplicate" onclick="event.stopPropagation();duplicatePerson('${p.id}')">⧉</button>
         <button class="del" title="Remove" onclick="event.stopPropagation();removePerson('${p.id}')">✕</button>
