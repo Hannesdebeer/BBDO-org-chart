@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BBDO Creative Department — Restructure Tool</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -366,6 +368,19 @@ const ROLE_COLORS = {
 const COPY_ROLES = ['Copy','SR CW','MID CW','JR CW','CW','Creative Director'];
 const ART_ROLES = ['Art','Design','JR AD','AD'];
 
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC_OwE2ygbby0ezkKcBoH7Obe3JCDsvgLk",
+  authDomain: "bbdo-fe613.firebaseapp.com",
+  databaseURL: "https://bbdo-fe613-default-rtdb.firebaseio.com",
+  projectId: "bbdo-fe613",
+  storageBucket: "bbdo-fe613.firebasestorage.app",
+  messagingSenderId: "1080409217206",
+  appId: "1:1080409217206:web:77c66b1100b5b8faeb6e17"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 let data = { pool: [], teams: [] };
 let INITIAL = { pool: [], teams: [] };
 let history = [];
@@ -377,8 +392,8 @@ let showingDiff = false;
 // ═══════════════════════════════════════
 // AUTO-SAVE (localStorage — fully automatic)
 // ═══════════════════════════════════════
-const DATA_VERSION = 3;
 let saveTimeout = null;
+let suppressRemoteUpdate = false;
 
 function flashSaved() {
   const el = document.getElementById('saveIndicator');
@@ -391,35 +406,23 @@ function flashSaved() {
 function autoSave() {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
-    try {
-      localStorage.setItem('bbdo-restructure', JSON.stringify({v:DATA_VERSION, d:data}));
-      localStorage.setItem('bbdo-snapshots', JSON.stringify(snapshots));
+    suppressRemoteUpdate = true;
+    db.ref('orgchart').set(data).then(() => {
       flashSaved();
-    } catch(e) {}
+      setTimeout(() => { suppressRemoteUpdate = false; }, 500);
+    }).catch(() => { suppressRemoteUpdate = false; });
   }, 300);
 }
 
-function autoLoad() {
-  try {
-    const raw = localStorage.getItem('bbdo-restructure');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.v >= 2 && parsed.d && Array.isArray(parsed.d.pool)) {
-        data = parsed.d;
-        return true;
-      }
-      localStorage.removeItem('bbdo-restructure');
-    }
-  } catch(e) { try { localStorage.removeItem('bbdo-restructure'); } catch(e2) {} }
-  return false;
-}
 function loadSnapshots() {
-  try {
-    const s = localStorage.getItem('bbdo-snapshots');
-    if (s) snapshots = JSON.parse(s);
-  } catch(e) {}
+  db.ref('snapshots').once('value').then(snap => {
+    if (snap.val()) snapshots = snap.val();
+  });
 }
-function saveSnapshots() { autoSave(); }
+function saveSnapshots() {
+  db.ref('snapshots').set(snapshots);
+  autoSave();
+}
 
 // ═══════════════════════════════════════
 // STATE
@@ -944,25 +947,40 @@ document.addEventListener('keydown', e => {
 // INIT
 // ═══════════════════════════════════════
 (async function init() {
-  // Fetch external data
+  // Load initial/default data from data.json
   try {
     const resp = await fetch('data.json');
-    if (!resp.ok) throw new Error('Failed to load data.json');
-    const remoteData = await resp.json();
-    INITIAL = JSON.parse(JSON.stringify(remoteData));
-    data = JSON.parse(JSON.stringify(remoteData));
-  } catch(e) {
-    console.warn('Could not load data.json, using localStorage or empty state:', e);
-  }
-  // Try localStorage override
-  const loaded = autoLoad();
-  if (loaded && (!data.teams || !Array.isArray(data.pool))) {
+    if (resp.ok) {
+      const defaultData = await resp.json();
+      INITIAL = JSON.parse(JSON.stringify(defaultData));
+    }
+  } catch(e) {}
+
+  // Load from Firebase
+  const snap = await db.ref('orgchart').once('value');
+  if (snap.val() && snap.val().teams) {
+    data = snap.val();
+    if (!data.pool) data.pool = [];
+  } else {
+    // First time — seed Firebase with default data
     data = JSON.parse(JSON.stringify(INITIAL));
-    autoSave();
+    await db.ref('orgchart').set(data);
   }
+
   loadSnapshots();
   renderSnapshotBar();
   render();
+
+  // Real-time listener — sync live changes from other users
+  db.ref('orgchart').on('value', snap => {
+    if (suppressRemoteUpdate) return;
+    const remote = snap.val();
+    if (remote && remote.teams) {
+      data = remote;
+      if (!data.pool) data.pool = [];
+      render();
+    }
+  });
 })();
 </script>
 </body>
