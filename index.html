@@ -358,16 +358,16 @@
 // ═══════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════
-const ROLES = ['Senior CD','Strat Director','Ass. Strat Director','CD','Creative Director','Copy','Art','Design','SR CW','MID CW','JR CW','JR AD','CW','AD','Freelancer'];
+const ROLES = ['CCO','ECD','Senior CD','ACD','CD','Strat Director','Ass. Strat Director','Head of Production','Copy','Writer','Arabic Copy','Content Creator','Editor','Art','Senior Art','Design','Designer/AD','Motion','Studio','SR CW','MID CW','JR CW','JR AD','CW','AD','Freelancer'];
 const TEAM_COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4','#8b5cf6','#ef4444','#f97316','#14b8a6','#a855f7'];
 const ROLE_COLORS = {
-  'CCO':'#ef4444','ECD':'#f59e0b',
+  'CCO':'#ef4444','ECD':'#f59e0b','ACD':'#a78bfa','Head of Production':'#14b8a6',
   'Senior CD':'#6366f1','Strat Director':'#10b981','Ass. Strat Director':'#10b981','CD':'#8b5cf6',
-  'Creative Director':'#06b6d4','Copy':'#06b6d4','Art':'#ec4899','Design':'#ec4899',
+  'Copy':'#06b6d4','Writer':'#06b6d4','Arabic Copy':'#06b6d4','Content Creator':'#06b6d4','Editor':'#06b6d4','Art':'#ec4899','Senior Art':'#ec4899','Design':'#ec4899','Designer/AD':'#ec4899','Motion':'#f97316','Studio':'#84cc16',
   'SR CW':'#06b6d4','MID CW':'#06b6d4','JR CW':'#38bdf8','JR AD':'#f472b6','CW':'#06b6d4','AD':'#ec4899','Freelancer':'#f59e0b'
 };
-const COPY_ROLES = ['Copy','SR CW','MID CW','JR CW','CW','Creative Director'];
-const ART_ROLES = ['Art','Design','JR AD','AD'];
+const COPY_ROLES = ['Copy','Writer','Arabic Copy','SR CW','MID CW','JR CW','CW'];
+const ART_ROLES = ['Art','Senior Art','Design','Designer/AD','JR AD','AD'];
 
 // Firebase config
 const firebaseConfig = {
@@ -589,8 +589,11 @@ function renderSnapshotBar() {
 function addPerson(teamId) {
   const name = prompt('Person name:');
   if (!name) return;
+  const role = prompt('Role:\n' + ROLES.map((r,i)=>`${i+1}. ${r}`).join('\n') + '\n\nType role name or number:');
+  if (!role) return;
+  const picked = ROLES[parseInt(role)-1] || (ROLES.includes(role) ? role : role);
   saveState();
-  const p = { id:uid(), name, role:'Art' };
+  const p = { id:uid(), name, role:picked };
   if (teamId === '__pool') {
     data.pool.push(p);
   } else {
