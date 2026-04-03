@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BBDO Creative Department — Restructure Tool</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #08080d;
+    --bg2: #0e0e16;
+    --card-bg: rgba(255,255,255,0.025);
+    --card-border: rgba(255,255,255,0.06);
+    --card-hover: rgba(255,255,255,0.05);
+    --text: #e8e8ed;
+    --text-dim: #55556b;
+    --text-mid: #9b9bab;
+    --accent: #6366f1;
+    --pink: #ec4899;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --cyan: #06b6d4;
+    --violet: #8b5cf6;
+    --red: #ef4444;
+    --drop-zone: rgba(99,102,241,0.1);
+  }
+  body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display:flex; align-items:center; gap:10px; padding:14px 24px;
+    background:var(--bg2); border-bottom:1px solid var(--card-border);
+    position:sticky; top:0; z-index:50;
+  }
+  .toolbar-brand { font-size:15px; font-weight:800; letter-spacing:-0.5px; background:linear-gradient(135deg,#fff,#888); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-right:8px; }
+  .toolbar-sep { width:1px; height:20px; background:var(--card-border); margin:0 4px; }
+  .btn {
+    padding:6px 12px; border-radius:7px; border:1px solid var(--card-border); background:var(--card-bg);
+    color:var(--text-mid); font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; font-family:inherit;
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .btn:hover { background:var(--card-hover); color:var(--text); border-color:rgba(255,255,255,0.12); }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn.primary:hover { background:#5558e6; }
+  .btn.danger { color:var(--red); }
+  .btn.danger:hover { background:rgba(239,68,68,0.1); }
+  .btn[disabled] { opacity:0.3; pointer-events:none; }
+  .btn kbd { font-size:9px; opacity:0.5; font-family:inherit; }
+
+  /* Search */
+  .search-box {
+    position:relative; margin-left:auto;
+  }
+  .search-box input {
+    width:200px; padding:6px 10px 6px 28px; border-radius:7px; border:1px solid var(--card-border);
+    background:var(--card-bg); color:var(--text); font-size:11px; font-family:inherit; outline:none; transition:all .15s;
+  }
+  .search-box input:focus { border-color:var(--accent); width:260px; }
+  .search-box input::placeholder { color:var(--text-dim); }
+  .search-box svg { position:absolute; left:8px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-dim); }
+
+  /* Filter pills */
+  .filter-bar {
+    display:flex; align-items:center; gap:6px; padding:8px 24px;
+    border-bottom:1px solid var(--card-border); background:var(--bg2); flex-wrap: wrap;
+  }
+  .filter-pill {
+    padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600; cursor:pointer;
+    border:1px solid var(--card-border); background:transparent; color:var(--text-dim); transition:all .15s;
+    text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .filter-pill:hover { border-color:rgba(255,255,255,0.15); color:var(--text-mid); }
+  .filter-pill.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .filter-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-right:4px; }
+
+  /* Snapshot bar */
+  .snapshot-bar {
+    display:flex; align-items:center; gap:6px; padding:8px 24px;
+    border-bottom:1px solid var(--card-border); background:var(--bg);
+  }
+  .snapshot-chip {
+    padding:4px 12px; border-radius:6px; font-size:11px; font-weight:500; cursor:pointer;
+    border:1px solid var(--card-border); background:var(--card-bg); color:var(--text-mid); transition:all .15s;
+  }
+  .snapshot-chip:hover { border-color:rgba(255,255,255,0.15); color:var(--text); }
+  .snapshot-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .snapshot-chip .snap-del { margin-left:6px; opacity:0.5; cursor:pointer; }
+  .snapshot-chip .snap-del:hover { opacity:1; }
+
+  /* ── MAIN LAYOUT ── */
+  .main { display:flex; flex:1; overflow:hidden; }
+
+  /* Unassigned Pool */
+  .pool {
+    width:240px; min-width:240px; background:var(--bg2); border-right:1px solid var(--card-border);
+    display:flex; flex-direction:column; overflow:hidden; transition:width .2s;
+  }
+  .pool.collapsed { width:48px; min-width:48px; }
+  .pool.collapsed .pool-header h3,
+  .pool.collapsed .pool-body,
+  .pool.collapsed .pool-add { display:none; }
+  .pool.collapsed .pool-toggle { transform:rotate(180deg); }
+  .pool-header {
+    padding:14px 14px 10px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--card-border);
+  }
+  .pool-header h3 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); }
+  .pool-toggle { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; padding:4px; transition:transform .2s; }
+  .pool-body { flex:1; overflow-y:auto; padding:8px; }
+  .pool-body .people-list { min-height:80px; padding:6px; border:1px dashed rgba(255,255,255,0.06); border-radius:10px; }
+  .pool-empty { padding:20px 12px; text-align:center; font-size:11px; color:var(--text-dim); line-height:1.6; }
+  .pool-count { font-size:10px; color:var(--accent); font-weight:600; margin-left:6px; }
+  .pool-add { padding:8px; border-top:1px solid var(--card-border); }
+
+  /* Board */
+  .board {
+    flex:1; display:flex; gap:12px; padding:16px; overflow-x:auto; align-items:flex-start;
+  }
+
+  /* Team Column */
+  .team-col {
+    min-width:230px; max-width:260px; flex-shrink:0; border-radius:14px;
+    background:var(--card-bg); border:1px solid var(--card-border); overflow:hidden; transition:all .2s;
+  }
+  .team-col:hover { border-color:rgba(255,255,255,0.1); }
+  .team-col.highlight { box-shadow:0 0 0 2px var(--accent), 0 0 20px rgba(99,102,241,0.15); }
+  .team-col.dim { opacity:0.25; }
+
+  .team-header { padding:14px 14px 10px; border-bottom:1px solid var(--card-border); position:relative; }
+  .team-top-bar { height:3px; position:absolute; top:0; left:0; right:0; }
+  .team-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .team-name {
+    font-size:13px; font-weight:700; letter-spacing:-0.2px; text-transform:uppercase; cursor:text;
+    padding:1px 4px; border-radius:4px; border:1px solid transparent; transition:all .15s; outline:none;
+  }
+  .team-name:hover { border-color:rgba(255,255,255,0.1); }
+  .team-name:focus { border-color:var(--accent); background:rgba(99,102,241,0.08); }
+  .team-count { font-size:10px; color:var(--text-dim); margin-top:2px; padding-left:4px; }
+
+  /* Stats bar — removed */
+
+  /* Section labels & lists */
+  .section-label { padding:8px 14px 4px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
+  .section-label .add-btn {
+    float:right; cursor:pointer; opacity:0.4; transition:opacity .15s; font-size:12px; font-weight:400;
+  }
+  .section-label .add-btn:hover { opacity:1; }
+
+  .people-list { padding:3px 6px; min-height:32px; transition:all .15s; border-radius:8px; margin:0 6px; }
+  .people-list.drag-over { background:var(--drop-zone); box-shadow:inset 0 0 0 1px rgba(99,102,241,0.3); }
+
+  /* Person card */
+  .person {
+    display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px;
+    cursor:grab; transition:all .15s; position:relative; margin-bottom:1px;
+  }
+  .person:hover { background:rgba(255,255,255,0.035); }
+  .person:active { cursor:grabbing; }
+  .person.dragging { opacity:0.2; }
+  .person.drop-before { border-top:2px solid var(--accent); margin-top:-1px; }
+  .person.drop-after { border-bottom:2px solid var(--accent); margin-bottom:-1px; }
+  .person.leader { background:rgba(99,102,241,0.08); }
+  .person.leader:hover { background:rgba(99,102,241,0.12); }
+  .person.search-match { box-shadow:0 0 0 1px var(--amber); background:rgba(245,158,11,0.08); }
+  .person.filtered-out { display:none; }
+
+  .person-avatar {
+    width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:800; flex-shrink:0;
+  }
+  .person-info { flex:1; min-width:0; }
+  .person-name {
+    font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    cursor:text; padding:0 2px; border-radius:3px; border:1px solid transparent; outline:none; transition:all .15s;
+  }
+  .person-name:hover { border-color:rgba(255,255,255,0.08); }
+  .person-name:focus { border-color:var(--accent); background:rgba(99,102,241,0.08); cursor:text; }
+  .person-role {
+    font-size:10px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    cursor:pointer; padding:0 2px;
+  }
+  .person-role:hover { color:var(--text-mid); text-decoration:underline; text-decoration-style:dotted; }
+
+  .person-actions {
+    display:none; position:absolute; right:4px; top:50%; transform:translateY(-50%);
+    gap:2px;
+  }
+  .person:hover .person-actions { display:flex; }
+  .person-actions button {
+    width:20px; height:20px; border:none; border-radius:4px; background:rgba(255,255,255,0.06);
+    color:var(--text-dim); cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .person-actions button:hover { background:rgba(255,255,255,0.12); color:var(--text); }
+  .person-actions button.del:hover { background:rgba(239,68,68,0.15); color:var(--red); }
+
+  .alloc-badge { font-size:8px; color:var(--green); font-weight:700; flex-shrink:0; }
+  .fl-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(245,158,11,0.12); color:#fbbf24; font-weight:700; flex-shrink:0; transition:opacity .15s; }
+  .person:hover .fl-badge { opacity:0; pointer-events:none; }
+
+  /* Client tags */
+  .clients-section { padding:6px 14px 12px; border-top:1px solid var(--card-border); margin-top:4px; }
+  .clients-list { display:flex; flex-wrap:wrap; gap:5px; min-height:26px; padding:4px 0; border-radius:6px; transition:all .15s; }
+  .clients-list.drag-over { background:var(--drop-zone); box-shadow:inset 0 0 0 1px rgba(99,102,241,0.3); padding:4px; }
+
+  .client-tag {
+    padding:3px 8px; border-radius:5px; font-size:10px; font-weight:600; cursor:grab;
+    transition:all .15s; letter-spacing:0.2px; border:1px solid transparent; position:relative;
+  }
+  .client-tag:active { cursor:grabbing; }
+  .client-tag.dragging { opacity:0.2; }
+  .client-tag.retainer { background:rgba(255,255,255,0.07); color:var(--text); border-color:rgba(255,255,255,0.08); }
+  .client-tag.project { background:rgba(99,102,241,0.1); color:#a5b4fc; border-color:rgba(99,102,241,0.15); }
+  .client-tag.social { background:rgba(236,72,153,0.08); color:#f9a8d4; border-color:rgba(236,72,153,0.12); }
+  .client-tag:hover { filter:brightness(1.3); }
+  .client-tag.search-match { box-shadow:0 0 0 1px var(--amber); }
+  .client-tag .ctx-del { display:none; margin-left:4px; cursor:pointer; opacity:0.5; }
+  .client-tag:hover .ctx-del { display:inline; }
+  .client-tag .ctx-del:hover { opacity:1; }
+
+  /* Drag ghost */
+  .drag-ghost {
+    position:fixed; pointer-events:none; z-index:9999; padding:6px 14px;
+    background:var(--accent); color:#fff; border-radius:8px; font-size:12px; font-weight:600;
+    box-shadow:0 8px 32px rgba(99,102,241,0.4); transform:translate(-50%,-50%);
+    display:none; font-family:'Inter',sans-serif;
+  }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px);
+    padding:8px 18px; background:rgba(16,185,129,0.9); color:#fff; border-radius:8px;
+    font-size:12px; font-weight:500; box-shadow:0 4px 20px rgba(0,0,0,0.4); transition:transform .25s;
+    z-index:100; backdrop-filter:blur(10px); font-family:'Inter',sans-serif;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* Before/After overlay */
+  .diff-badge {
+    display:inline-block; font-size:8px; font-weight:700; padding:1px 5px; border-radius:3px;
+    margin-left:6px; vertical-align:middle; text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .diff-added { background:rgba(16,185,129,0.15); color:var(--green); }
+  .diff-removed { background:rgba(239,68,68,0.15); color:var(--red); }
+  .diff-moved { background:rgba(99,102,241,0.15); color:var(--accent); }
+
+  /* Context menu */
+  .ctx-menu {
+    position:fixed; background:#1a1a2e; border:1px solid var(--card-border); border-radius:10px;
+    padding:4px; min-width:160px; box-shadow:0 8px 32px rgba(0,0,0,0.6); z-index:200;
+    font-family:'Inter',sans-serif; display:none;
+  }
+  .ctx-menu.show { display:block; }
+  .ctx-item {
+    padding:7px 12px; border-radius:6px; font-size:11px; color:var(--text-mid); cursor:pointer;
+    display:flex; align-items:center; gap:8px; transition:all .1s;
+  }
+  .ctx-item:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+  .ctx-item.danger:hover { background:rgba(239,68,68,0.1); color:var(--red); }
+  .ctx-sep { height:1px; background:var(--card-border); margin:3px 8px; }
+
+  /* Role selector dropdown */
+  .role-dropdown {
+    position:absolute; background:#1a1a2e; border:1px solid var(--card-border); border-radius:8px;
+    padding:4px; min-width:150px; box-shadow:0 8px 24px rgba(0,0,0,0.5); z-index:200;
+    max-height:200px; overflow-y:auto;
+  }
+  .role-opt {
+    padding:5px 10px; border-radius:5px; font-size:11px; color:var(--text-mid); cursor:pointer; transition:all .1s;
+  }
+  .role-opt:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.15); }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .team-col { animation:fadeIn .3s ease-out backwards; }
+  .team-col:nth-child(1){animation-delay:0s} .team-col:nth-child(2){animation-delay:.04s}
+  .team-col:nth-child(3){animation-delay:.08s} .team-col:nth-child(4){animation-delay:.12s}
+  .team-col:nth-child(5){animation-delay:.16s} .team-col:nth-child(6){animation-delay:.2s}
+  .team-col:nth-child(7){animation-delay:.24s} .team-col:nth-child(8){animation-delay:.28s}
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <span class="toolbar-brand">BBDO Restructure</span>
+  <div class="toolbar-sep"></div>
+  <button class="btn" id="undoBtn" disabled onclick="undo()">↩ Undo <kbd>⌘Z</kbd></button>
+  <button class="btn" id="diffBtn" onclick="toggleDiff()">◑ Before / After</button>
+  <div class="toolbar-sep"></div>
+  <button class="btn" onclick="saveSnapshot()">📌 Save Snapshot</button>
+  <button class="btn" onclick="exportJSON()">↓ Export</button>
+  <span id="saveIndicator" style="font-size:10px;font-weight:600;"></span>
+  <button class="btn primary" onclick="addTeam()">+ Team</button>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search people or clients…" oninput="onSearch(this.value)">
+  </div>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar">
+  <span class="filter-label">Filter</span>
+  <span class="filter-pill active" data-filter="all" onclick="setFilter('all')">All</span>
+  <span class="filter-pill" data-filter="Senior CD" onclick="setFilter('Senior CD')">Senior CD</span>
+  <span class="filter-pill" data-filter="Strat Director" onclick="setFilter('Strat Director')">Strat Director</span>
+  <span class="filter-pill" data-filter="Creative Director" onclick="setFilter('Creative Director')">Creative Dir</span>
+  <span class="filter-pill" data-filter="Copy" onclick="setFilter('Copy')">Copy</span>
+  <span class="filter-pill" data-filter="Art" onclick="setFilter('Art')">Art</span>
+  <span class="filter-pill" data-filter="Design" onclick="setFilter('Design')">Design</span>
+  <span class="filter-pill" data-filter="CW" onclick="setFilter('CW')">CW</span>
+  <span class="filter-pill" data-filter="AD" onclick="setFilter('AD')">AD</span>
+</div>
+
+<!-- Snapshots -->
+<div class="snapshot-bar" id="snapshotBar">
+  <span class="filter-label">Snapshots</span>
+  <span class="snapshot-chip active" onclick="loadSnapshot('current')">Current</span>
+</div>
+
+<!-- Main layout -->
+<div class="main">
+  <!-- Unassigned Pool -->
+  <div class="pool" id="pool">
+    <div class="pool-header">
+      <h3>Unassigned <span class="pool-count" id="poolCount"></span></h3>
+      <button class="pool-toggle" onclick="togglePool()" title="Collapse">◀</button>
+    </div>
+    <div class="pool-body">
+      <div class="pool-empty" id="poolEmpty">
+        Drop people here to<br>park them while you<br>restructure
+      </div>
+      <div class="people-list" data-team="__pool" data-list="members" id="poolList"></div>
+    </div>
+    <div class="pool-add">
+      <button class="btn" style="width:100%;justify-content:center;" onclick="addPerson('__pool')">+ Add Person</button>
+    </div>
+  </div>
+
+  <!-- Board -->
+  <div class="board" id="board"></div>
+</div>
+
+<!-- Overlays -->
+<div class="drag-ghost" id="dragGhost"></div>
+<div class="toast" id="toast"></div>
+<div class="ctx-menu" id="ctxMenu"></div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const ROLES = ['CCO','ECD','Senior CD','ACD','CD','Strat Director','Ass. Strat Director','Head of Production','Copy','Writer','Arabic Copy','Content Creator','Editor','Art','Senior Art','Design','Designer/AD','Motion','Motion/Editor','SuperMotion','Studio','SR CW','MID CW','JR CW','JR AD','CW','AD','Freelancer'];
+const TEAM_COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4','#8b5cf6','#ef4444','#f97316','#14b8a6','#a855f7'];
+const ROLE_COLORS = {
+  'CCO':'#ef4444','ECD':'#f59e0b','ACD':'#a78bfa','Head of Production':'#14b8a6',
+  'Senior CD':'#6366f1','Strat Director':'#10b981','Ass. Strat Director':'#10b981','CD':'#8b5cf6',
+  'Copy':'#06b6d4','Writer':'#06b6d4','Arabic Copy':'#06b6d4','Content Creator':'#06b6d4','Editor':'#06b6d4','Art':'#ec4899','Senior Art':'#ec4899','Design':'#ec4899','Designer/AD':'#ec4899','Motion':'#f97316','Motion/Editor':'#f97316','SuperMotion':'#ea580c','Studio':'#84cc16',
+  'SR CW':'#06b6d4','MID CW':'#06b6d4','JR CW':'#38bdf8','JR AD':'#f472b6','CW':'#06b6d4','AD':'#ec4899','Freelancer':'#f59e0b'
+};
+const COPY_ROLES = ['Copy','Writer','Arabic Copy','SR CW','MID CW','JR CW','CW'];
+const ART_ROLES = ['Art','Senior Art','Design','Designer/AD','JR AD','AD'];
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyC_OwE2ygbby0ezkKcBoH7Obe3JCDsvgLk",
+  authDomain: "bbdo-fe613.firebaseapp.com",
+  databaseURL: "https://bbdo-fe613-default-rtdb.firebaseio.com",
+  projectId: "bbdo-fe613",
+  storageBucket: "bbdo-fe613.firebasestorage.app",
+  messagingSenderId: "1080409217206",
+  appId: "1:1080409217206:web:77c66b1100b5b8faeb6e17"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let data = { pool: [], teams: [] };
+let INITIAL = { pool: [], teams: [] };
+let history = [];
+let snapshots = {};
+let activeFilter = 'all';
+let searchQuery = '';
+let showingDiff = false;
+
+// ═══════════════════════════════════════
+// AUTO-SAVE (localStorage — fully automatic)
+// ═══════════════════════════════════════
+let saveTimeout = null;
+let suppressRemoteUpdate = false;
+
+function flashSaved() {
+  const el = document.getElementById('saveIndicator');
+  if (!el) return;
+  el.innerHTML = '<span style="color:var(--green)">● Saved</span>';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.innerHTML = ''; }, 1500);
+}
+
+function autoSave() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    suppressRemoteUpdate = true;
+    db.ref('orgchart').set(data).then(() => {
+      flashSaved();
+      setTimeout(() => { suppressRemoteUpdate = false; }, 500);
+    }).catch(() => { suppressRemoteUpdate = false; });
+  }, 300);
+}
+
+function loadSnapshots() {
+  db.ref('snapshots').once('value').then(snap => {
+    if (snap.val()) snapshots = snap.val();
+  });
+}
+function saveSnapshots() {
+  db.ref('snapshots').set(snapshots);
+  autoSave();
+}
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+function saveState() {
+  history.push(JSON.parse(JSON.stringify(data)));
+  if (history.length > 60) history.shift();
+  document.getElementById('undoBtn').disabled = false;
+}
+function undo() {
+  if (!history.length) return;
+  data = history.pop();
+  render(); autoSave();
+  document.getElementById('undoBtn').disabled = history.length === 0;
+  showToast('Undone');
+}
+function resetLayout() {
+  saveState();
+  data = JSON.parse(JSON.stringify(INITIAL));
+  render(); autoSave();
+  showToast('Reset to original');
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function uid() { return 'id-' + Math.random().toString(36).slice(2,9); }
+function getInitials(n) { return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function rc(role) { return ROLE_COLORS[role]||'#6b7280'; }
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2000); }
+
+function getAllPeople() {
+  const all = [...data.pool.map(p=>({...p,_team:'Unassigned',_list:'pool'}))];
+  data.teams.forEach(t => {
+    t.leaders.forEach(p => all.push({...p,_team:t.name,_list:'leaders'}));
+    t.members.forEach(p => all.push({...p,_team:t.name,_list:'members'}));
+  });
+  return all;
+}
+
+function teamStats(team) {
+  const all = [...team.leaders, ...team.members];
+  const copy = all.filter(p => COPY_ROLES.includes(p.role)).length;
+  const art = all.filter(p => ART_ROLES.includes(p.role)).length;
+  const lead = all.filter(p => ['Senior CD','Strat Director','Ass. Strat Director','CD'].includes(p.role)).length;
+  const other = all.length - copy - art - lead;
+  return { total:all.length, copy, art, lead, other, clients:team.clients.length };
+}
+
+// ═══════════════════════════════════════
+// DIFF (Before/After)
+// ═══════════════════════════════════════
+function buildOriginalMap() {
+  const m = {};
+  INITIAL.pool.forEach(p => { m[p.id] = '__pool'; });
+  INITIAL.teams.forEach(t => {
+    [...t.leaders,...t.members].forEach(p => { m[p.id] = t.id; });
+  });
+  return m;
+}
+function buildCurrentMap() {
+  const m = {};
+  data.pool.forEach(p => { m[p.id] = '__pool'; });
+  data.teams.forEach(t => {
+    [...t.leaders,...t.members].forEach(p => { m[p.id] = t.id; });
+  });
+  return m;
+}
+function getDiffClass(personId) {
+  if (!showingDiff) return '';
+  const orig = buildOriginalMap();
+  const curr = buildCurrentMap();
+  if (!orig[personId] && curr[personId]) return 'diff-added';
+  if (orig[personId] && !curr[personId]) return 'diff-removed';
+  if (orig[personId] !== curr[personId]) return 'diff-moved';
+  return '';
+}
+function toggleDiff() {
+  showingDiff = !showingDiff;
+  document.getElementById('diffBtn').classList.toggle('primary', showingDiff);
+  render();
+}
+
+// ═══════════════════════════════════════
+// SEARCH & FILTER
+// ═══════════════════════════════════════
+function onSearch(q) {
+  searchQuery = q.toLowerCase().trim();
+  applySearchAndFilter();
+}
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === f));
+  applySearchAndFilter();
+}
+function applySearchAndFilter() {
+  // People
+  document.querySelectorAll('.person').forEach(el => {
+    const name = (el.dataset.name||'').toLowerCase();
+    const role = (el.dataset.role||'');
+    const matchSearch = !searchQuery || name.includes(searchQuery) || role.toLowerCase().includes(searchQuery);
+    const matchFilter = activeFilter === 'all' || role === activeFilter
+      || (activeFilter === 'Copy' && COPY_ROLES.includes(role))
+      || (activeFilter === 'Art' && ART_ROLES.includes(role))
+      || (activeFilter === 'CW' && role.includes('CW'))
+      || (activeFilter === 'AD' && (role === 'AD' || role === 'JR AD'))
+      || (activeFilter === 'Strat Director' && (role === 'Strat Director' || role === 'Ass. Strat Director'));
+    el.classList.toggle('search-match', searchQuery && matchSearch);
+    el.classList.toggle('filtered-out', !matchFilter);
+  });
+  // Clients
+  document.querySelectorAll('.client-tag').forEach(el => {
+    const name = (el.dataset.name||'').toLowerCase();
+    const match = !searchQuery || name.includes(searchQuery);
+    el.classList.toggle('search-match', searchQuery && match);
+  });
+  // Dim non-matching team columns
+  document.querySelectorAll('.team-col').forEach(col => {
+    if (!searchQuery) { col.classList.remove('highlight','dim'); return; }
+    const hasMatch = col.querySelector('.search-match');
+    col.classList.toggle('highlight', !!hasMatch);
+    col.classList.toggle('dim', !hasMatch);
+  });
+}
+
+// ═══════════════════════════════════════
+// SNAPSHOTS
+// ═══════════════════════════════════════
+function saveSnapshot() {
+  const name = prompt('Snapshot name:');
+  if (!name) return;
+  snapshots[name] = JSON.parse(JSON.stringify(data));
+  saveSnapshots(); renderSnapshotBar();
+  showToast(`Saved "${name}"`);
+}
+function loadSnapshot(name) {
+  if (name === 'current') {
+    // just highlight
+  } else {
+    saveState();
+    data = JSON.parse(JSON.stringify(snapshots[name]));
+    render(); autoSave();
+    showToast(`Loaded "${name}"`);
+  }
+  document.querySelectorAll('.snapshot-chip').forEach(c => c.classList.toggle('active', c.dataset.snap === name));
+}
+function deleteSnapshot(name, e) {
+  e.stopPropagation();
+  delete snapshots[name];
+  saveSnapshots(); renderSnapshotBar();
+  showToast(`Deleted "${name}"`);
+}
+function renderSnapshotBar() {
+  const bar = document.getElementById('snapshotBar');
+  bar.innerHTML = `<span class="filter-label">Snapshots</span>
+    <span class="snapshot-chip active" data-snap="current" onclick="loadSnapshot('current')">Current</span>
+    ${Object.keys(snapshots).map(n => `<span class="snapshot-chip" data-snap="${n}" onclick="loadSnapshot('${n}')">${n}<span class="snap-del" onclick="deleteSnapshot('${n}',event)">✕</span></span>`).join('')}`;
+}
+
+// ═══════════════════════════════════════
+// ADD / REMOVE
+// ═══════════════════════════════════════
+function addPerson(teamId) {
+  const name = prompt('Person name:');
+  if (!name) return;
+  const role = prompt('Role:\n' + ROLES.map((r,i)=>`${i+1}. ${r}`).join('\n') + '\n\nType role name or number:');
+  if (!role) return;
+  const picked = ROLES[parseInt(role)-1] || (ROLES.includes(role) ? role : role);
+  saveState();
+  const p = { id:uid(), name, role:picked };
+  if (teamId === '__pool') {
+    data.pool.push(p);
+  } else {
+    const team = data.teams.find(t=>t.id===teamId);
+    if (team) team.members.push(p);
+  }
+  render(); autoSave();
+  showToast(`Added ${name}`);
+}
+function addClient(teamId, type='retainer') {
+  const name = prompt(`${type==='project'?'Project':'Retainer'} name:`);
+  if (!name) return;
+  saveState();
+  const team = data.teams.find(t=>t.id===teamId);
+  if (team) team.clients.push({ id:uid(), name:name.toUpperCase(), type });
+  render(); autoSave();
+  showToast(`Added ${name}`);
+}
+function removePerson(personId) {
+  saveState();
+  data.pool = data.pool.filter(p=>p.id!==personId);
+  data.teams.forEach(t => {
+    t.leaders = t.leaders.filter(p=>p.id!==personId);
+    t.members = t.members.filter(p=>p.id!==personId);
+  });
+  render(); autoSave();
+}
+function removeClient(clientId) {
+  saveState();
+  data.teams.forEach(t => { t.clients = t.clients.filter(c=>c.id!==clientId); });
+  render(); autoSave();
+}
+function addTeam() {
+  const name = prompt('New team name:');
+  if (!name) return;
+  saveState();
+  data.teams.push({ id:uid(), name, color:TEAM_COLORS[data.teams.length%TEAM_COLORS.length], leaders:[], members:[], clients:[] });
+  render(); autoSave();
+  showToast(`Added ${name}`);
+}
+function removeTeam(teamId) {
+  const team = data.teams.find(t=>t.id===teamId);
+  if (!team) return;
+  if (!confirm('Are you fucking sure?')) return;
+  saveState();
+  // Move people to pool
+  data.pool.push(...team.leaders, ...team.members);
+  data.teams = data.teams.filter(t=>t.id!==teamId);
+  render(); autoSave();
+  showToast(`Removed ${team.name} — people moved to Unassigned`);
+}
+
+// ═══════════════════════════════════════
+// INLINE EDITING
+// ═══════════════════════════════════════
+function onNameEdit(personId, el) {
+  // Strip any badge text that might be in the contenteditable
+  const badges = el.querySelectorAll('.diff-badge');
+  badges.forEach(b => b.remove());
+  const newName = el.textContent.trim();
+  if (!newName) { render(); return; }
+  saveState();
+  findPerson(personId, p => { p.name = newName; });
+  autoSave();
+}
+function changeRole(personId, el) {
+  // Show role dropdown
+  const rect = el.getBoundingClientRect();
+  const dd = document.createElement('div');
+  dd.className = 'role-dropdown';
+  dd.style.left = rect.left + 'px';
+  dd.style.top = (rect.bottom + 2) + 'px';
+  dd.innerHTML = ROLES.map(r => `<div class="role-opt" data-role="${r}">${r}</div>`).join('');
+  document.body.appendChild(dd);
+  dd.addEventListener('click', e => {
+    const opt = e.target.closest('.role-opt');
+    if (!opt) return;
+    saveState();
+    findPerson(personId, p => { p.role = opt.dataset.role; });
+    dd.remove();
+    render(); autoSave();
+  });
+  const close = (e) => { if (!dd.contains(e.target)) { dd.remove(); document.removeEventListener('mousedown', close); } };
+  setTimeout(() => document.addEventListener('mousedown', close), 0);
+}
+function onTeamNameEdit(teamId, el) {
+  const newName = el.textContent.trim();
+  if (!newName) { render(); return; }
+  saveState();
+  const team = data.teams.find(t=>t.id===teamId);
+  if (team) team.name = newName;
+  autoSave();
+}
+function findPerson(id, cb) {
+  const pi = data.pool.findIndex(p=>p.id===id);
+  if (pi >= 0) { cb(data.pool[pi]); return; }
+  for (const t of data.teams) {
+    for (const p of t.leaders) { if (p.id===id) { cb(p); return; } }
+    for (const p of t.members) { if (p.id===id) { cb(p); return; } }
+  }
+}
+
+// ═══════════════════════════════════════
+// CONTEXT MENU
+// ═══════════════════════════════════════
+function showCtx(e, personId) {
+  e.preventDefault();
+  const menu = document.getElementById('ctxMenu');
+  menu.innerHTML = `
+    <div class="ctx-item" onclick="duplicatePerson('${personId}')">⧉ Duplicate</div>
+    <div class="ctx-item" onclick="moveToPool('${personId}')">↗ Move to Unassigned</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item danger" onclick="removePerson('${personId}');hideCtx()">✕ Remove</div>
+  `;
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('show');
+  const close = () => { menu.classList.remove('show'); document.removeEventListener('mousedown', close); };
+  setTimeout(() => document.addEventListener('mousedown', close), 0);
+}
+function hideCtx() { document.getElementById('ctxMenu').classList.remove('show'); }
+function toggleFL(personId) {
+  saveState();
+  findPerson(personId, p => { p.freelancer = !p.freelancer; });
+  render(); autoSave();
+}
+function duplicatePerson(personId) {
+  hideCtx(); saveState();
+  findPerson(personId, p => {
+    data.pool.push({ ...JSON.parse(JSON.stringify(p)), id:uid() });
+  });
+  render(); autoSave();
+  showToast('Duplicated to Unassigned');
+}
+function moveToPool(personId) {
+  hideCtx(); saveState();
+  let person = null;
+  data.teams.forEach(t => {
+    const li = t.leaders.findIndex(p=>p.id===personId);
+    if (li>=0) { person = t.leaders.splice(li,1)[0]; }
+    const mi = t.members.findIndex(p=>p.id===personId);
+    if (mi>=0) { person = t.members.splice(mi,1)[0]; }
+  });
+  if (person) data.pool.push(person);
+  render(); autoSave();
+  showToast('Moved to Unassigned');
+}
+
+// ═══════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════
+let dragType=null, dragItem=null, dragSourceTeam=null, dragSourceList=null;
+
+function getDragAfterElement(zone, y) {
+  const els = [...zone.querySelectorAll('.person:not(.dragging)')];
+  let closest = null, closestOffset = Number.POSITIVE_INFINITY;
+  for (const el of els) {
+    const box = el.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > -closestOffset) { closestOffset = -offset; closest = el; }
+  }
+  return closest;
+}
+
+function attachDrag() {
+  // Person drag
+  document.querySelectorAll('.person[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragType='person';
+      const pid = el.dataset.personId;
+      const listEl = el.closest('.people-list');
+      dragSourceTeam = listEl.dataset.team;
+      dragSourceList = listEl.dataset.list;
+      if (dragSourceTeam === '__pool') {
+        dragItem = data.pool.find(p=>p.id===pid);
+      } else {
+        const team = data.teams.find(t=>t.id===dragSourceTeam);
+        dragItem = team[dragSourceList].find(p=>p.id===pid);
+      }
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',pid);
+      const ghost=document.getElementById('dragGhost');
+      ghost.textContent=dragItem.name; ghost.style.display='block';
+      ghost.style.left=e.clientX+'px'; ghost.style.top=e.clientY+'px';
+      e.dataTransfer.setDragImage(ghost,0,0);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.getElementById('dragGhost').style.display='none';
+      document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
+      dragType=null;dragItem=null;dragSourceTeam=null;dragSourceList=null;
+    });
+    el.addEventListener('contextmenu', e => showCtx(e, el.dataset.personId));
+  });
+
+  // Client drag
+  document.querySelectorAll('.client-tag[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragType='client';
+      dragSourceTeam=el.dataset.team;
+      const team=data.teams.find(t=>t.id===dragSourceTeam);
+      dragItem=team.clients.find(c=>c.id===el.dataset.clientId);
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',el.dataset.clientId);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
+      dragType=null;dragItem=null;dragSourceTeam=null;
+    });
+  });
+
+  // Drop zones
+  document.querySelectorAll('.people-list').forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      if(dragType!=='person')return; e.preventDefault(); e.dataTransfer.dropEffect='move';
+      zone.classList.add('drag-over');
+      // Show drop indicator between people
+      const people = [...zone.querySelectorAll('.person:not(.dragging)')];
+      zone.querySelectorAll('.person').forEach(p=>p.classList.remove('drop-before','drop-after'));
+      const after = getDragAfterElement(zone, e.clientY);
+      if (after) after.classList.add('drop-before');
+      else if (people.length) people[people.length-1].classList.add('drop-after');
+    });
+    zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); zone.querySelectorAll('.person').forEach(p=>p.classList.remove('drop-before','drop-after')); });
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      zone.querySelectorAll('.person').forEach(p=>p.classList.remove('drop-before','drop-after'));
+      if(dragType!=='person'||!dragItem)return;
+      const tgtTeam=zone.dataset.team, tgtList=zone.dataset.list;
+      // Find insert index based on drop position
+      const afterEl = getDragAfterElement(zone, e.clientY);
+      let insertIdx = -1;
+      if (afterEl) {
+        const afterId = afterEl.dataset.personId;
+        const tgtArr = tgtTeam==='__pool' ? data.pool : data.teams.find(t=>t.id===tgtTeam)[tgtList];
+        insertIdx = tgtArr.findIndex(p=>p.id===afterId);
+      }
+      // Skip if dropping in exact same position
+      if(tgtTeam===dragSourceTeam && tgtList===dragSourceList) {
+        const arr = tgtTeam==='__pool' ? data.pool : data.teams.find(t=>t.id===tgtTeam)[tgtList];
+        const curIdx = arr.findIndex(p=>p.id===dragItem.id);
+        if(insertIdx===-1 && curIdx===arr.length-1) return;
+        if(insertIdx===curIdx) return;
+      }
+      saveState();
+      // Remove from source
+      if(dragSourceTeam==='__pool') { data.pool=data.pool.filter(p=>p.id!==dragItem.id); }
+      else { const src=data.teams.find(t=>t.id===dragSourceTeam); src[dragSourceList]=src[dragSourceList].filter(p=>p.id!==dragItem.id); }
+      // Add to target at position
+      const tgtArr = tgtTeam==='__pool' ? data.pool : data.teams.find(t=>t.id===tgtTeam)[tgtList];
+      if(insertIdx===-1) { tgtArr.push(dragItem); }
+      else {
+        // Recalculate index after removal (in case same list)
+        const newIdx = afterEl ? tgtArr.findIndex(p=>p.id===afterEl.dataset.personId) : -1;
+        if(newIdx===-1) tgtArr.push(dragItem);
+        else tgtArr.splice(newIdx, 0, dragItem);
+      }
+      if(tgtTeam!==dragSourceTeam || tgtList!==dragSourceList) {
+        const tgtName = tgtTeam==='__pool' ? 'Unassigned' : data.teams.find(t=>t.id===tgtTeam)?.name;
+        showToast(`${dragItem.name} → ${tgtName}`);
+      }
+      render(); autoSave();
+    });
+  });
+
+  document.querySelectorAll('.clients-list').forEach(zone => {
+    zone.addEventListener('dragover', e => { if(dragType!=='client')return; e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if(dragType!=='client'||!dragItem)return;
+      const tgtTeam=zone.dataset.team;
+      const tgtType=zone.dataset.clientType||'retainer';
+      if(tgtTeam===dragSourceTeam && dragItem.type===tgtType) return;
+      saveState();
+      const src=data.teams.find(t=>t.id===dragSourceTeam);
+      src.clients=src.clients.filter(c=>c.id!==dragItem.id);
+      dragItem.type=tgtType;
+      const tgt=data.teams.find(t=>t.id===tgtTeam);
+      tgt.clients.push(dragItem);
+      showToast(`${dragItem.name} → ${tgt.name} (${tgtType})`);
+      render(); autoSave();
+    });
+  });
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function renderPerson(p, isLeader) {
+  const color = rc(p.role);
+  const diff = getDiffClass(p.id);
+  const diffBadge = diff ? `<span class="diff-badge ${diff}">${diff.replace('diff-','')}</span>` : '';
+  return `
+    <div class="person ${isLeader?'leader':''}" draggable="true" data-person-id="${p.id}" data-name="${p.name}" data-role="${p.role}">
+      <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;">
+        ${getInitials(p.name)}
+      </div>
+      <div class="person-info">
+        <div class="person-name" contenteditable="true" spellcheck="false"
+          onblur="onNameEdit('${p.id}',this)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${p.name}</div>${diffBadge ? `<div style="display:inline">${diffBadge}</div>` : ''}
+        <div class="person-role" onclick="changeRole('${p.id}',this)">${p.role}</div>
+      </div>
+      ${p.alloc ? `<span class="alloc-badge">${p.alloc}</span>` : ''}
+      ${p.freelancer ? `<span class="fl-badge">FL</span>` : ''}
+      <div class="person-actions">
+        <button title="Toggle Freelancer" onclick="event.stopPropagation();toggleFL('${p.id}')" style="${p.freelancer?'color:#fbbf24;':''}">FL</button>
+        <button title="Duplicate" onclick="event.stopPropagation();duplicatePerson('${p.id}')">⧉</button>
+        <button class="del" title="Remove" onclick="event.stopPropagation();removePerson('${p.id}')">✕</button>
+      </div>
+    </div>`;
+}
+
+function renderTeam(team) {
+  const s = teamStats(team);
+  return `
+    <div class="team-col" data-team-id="${team.id}">
+      <div class="team-header">
+        <div class="team-top-bar" style="background:linear-gradient(90deg,${team.color},transparent)"></div>
+        <div class="team-header-row">
+          <div style="flex:1;min-width:0;">
+            <div class="team-name" style="color:${team.color}" contenteditable="true" spellcheck="false"
+              onblur="onTeamNameEdit('${team.id}',this)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${team.dedicated?'★ ':''}${team.name}</div>
+            <div class="team-count">${s.total} people · ${s.clients} client${s.clients!==1?'s':''}</div>
+          </div>
+          <button class="btn danger" style="padding:3px 7px;font-size:9px;" onclick="removeTeam('${team.id}')" title="Remove team">✕</button>
+        </div>
+      </div>
+
+      <div class="section-label">Leadership <span class="add-btn" onclick="addPerson('${team.id}')" title="Add person">+</span></div>
+      <div class="people-list" data-team="${team.id}" data-list="leaders">
+        ${team.leaders.map(p => renderPerson(p, true)).join('')}
+      </div>
+
+      <div class="section-label">Team</div>
+      <div class="people-list" data-team="${team.id}" data-list="members">
+        ${team.members.map(p => renderPerson(p, false)).join('')}
+      </div>
+
+      <div class="clients-section">
+        <div class="section-label" style="padding:0 0 6px">Retainers <span class="add-btn" onclick="addClient('${team.id}','retainer')" title="Add retainer">+</span></div>
+        <div class="clients-list" data-team="${team.id}" data-client-type="retainer">
+          ${team.clients.filter(c=>c.type==='retainer').map(c => `
+            <div class="client-tag ${c.type} ${searchQuery && c.name.toLowerCase().includes(searchQuery)?'search-match':''}" draggable="true" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+              ${c.name}<span class="ctx-del" onclick="removeClient('${c.id}')">✕</span>
+            </div>`).join('')}
+        </div>
+        <div class="section-label" style="padding:6px 0 6px">Projects <span class="add-btn" onclick="addClient('${team.id}','project')" title="Add project">+</span></div>
+        <div class="clients-list" data-team="${team.id}" data-client-type="project">
+          ${team.clients.filter(c=>c.type==='project').map(c => `
+            <div class="client-tag ${c.type} ${searchQuery && c.name.toLowerCase().includes(searchQuery)?'search-match':''}" draggable="true" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+              ${c.name}<span class="ctx-del" onclick="removeClient('${c.id}')">✕</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function render() {
+  // Pool
+  const poolList = document.getElementById('poolList');
+  const poolEmpty = document.getElementById('poolEmpty');
+  const poolCount = document.getElementById('poolCount');
+  poolList.innerHTML = data.pool.map(p => renderPerson(p, false)).join('');
+  poolEmpty.style.display = data.pool.length ? 'none' : 'block';
+  poolCount.textContent = data.pool.length ? `(${data.pool.length})` : '';
+
+  // Board
+  const board = document.getElementById('board');
+  board.innerHTML = data.teams.map(t => renderTeam(t)).join('');
+
+  attachDrag();
+  applySearchAndFilter();
+}
+
+// ═══════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bbdo-restructure.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Exported');
+}
+
+// ═══════════════════════════════════════
+// POOL TOGGLE
+// ═══════════════════════════════════════
+function togglePool() {
+  document.getElementById('pool').classList.toggle('collapsed');
+}
+
+// ═══════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='z') { e.preventDefault(); undo(); }
+  if ((e.metaKey||e.ctrlKey) && e.key==='f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+  if (e.key==='Escape') {
+    document.getElementById('searchInput').value=''; searchQuery=''; applySearchAndFilter();
+    hideCtx();
+  }
+});
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+(async function init() {
+  // Load initial/default data from data.json
+  try {
+    const resp = await fetch('data.json');
+    if (resp.ok) {
+      const defaultData = await resp.json();
+      INITIAL = JSON.parse(JSON.stringify(defaultData));
+    }
+  } catch(e) {}
+
+  // Load from Firebase
+  function fixTeamArrays(d) {
+    if (!d.pool) d.pool = [];
+    if (d.teams) d.teams.forEach(t => {
+      if (!t.leaders) t.leaders = [];
+      if (!t.members) t.members = [];
+      if (!t.clients) t.clients = [];
+    });
+    return d;
+  }
+  const snap = await db.ref('orgchart').once('value');
+  if (snap.val() && snap.val().teams) {
+    data = fixTeamArrays(snap.val());
+  } else {
+    // First time — seed Firebase with default data
+    data = JSON.parse(JSON.stringify(INITIAL));
+    await db.ref('orgchart').set(data);
+  }
+
+  loadSnapshots();
+  renderSnapshotBar();
+  render();
+
+  // Real-time listener — sync live changes from other users
+  db.ref('orgchart').on('value', snap => {
+    if (suppressRemoteUpdate) return;
+    const remote = snap.val();
+    if (remote && remote.teams) {
+      data = fixTeamArrays(remote);
+      render();
+    }
+  });
+
+  // Force refresh when a new code version is deployed
+  const APP_VERSION = 1;
+  const vSnap = await db.ref('appVersion').once('value');
+  if (!vSnap.val()) {
+    await db.ref('appVersion').set(APP_VERSION);
+  } else if (vSnap.val() > APP_VERSION) {
+    location.reload(true);
+  }
+  db.ref('appVersion').on('value', snap => {
+    if (snap.val() && snap.val() > APP_VERSION) {
+      location.reload(true);
+    }
+  });
+})();
+</script>
+</body>
+</html>
