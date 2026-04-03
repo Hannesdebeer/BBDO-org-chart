@@ -1,0 +1,682 @@
+{
+    "pool": [
+        {
+            "id": "p-alirez",
+            "name": "Ali Rez",
+            "role": "CCO"
+        },
+        {
+            "id": "p-rana-3",
+            "name": "Rana",
+            "role": "Senior CD"
+        },
+        {
+            "id": "p-yasmina-3",
+            "name": "Yasmina",
+            "role": "Ass. Strat Director"
+        },
+        {
+            "id": "p-satin-6",
+            "name": "Satyen",
+            "role": "Senior CD"
+        },
+        {
+            "id": "p-sajeesh-6",
+            "name": "Sajeesh",
+            "role": "Art"
+        },
+        {
+            "id": "id-pfh389a",
+            "name": "Rana",
+            "role": "Art"
+        }
+    ],
+    "teams": [
+        {
+            "clients": [
+                {
+                    "id": "id-li9lysp",
+                    "name": "ETIHAD",
+                    "type": "retainer"
+                }
+            ],
+            "color": "#6366f1",
+            "dedicated": true,
+            "id": "etihad",
+            "leaders": [
+                {
+                    "id": "p-satyen-e",
+                    "name": "Satyen",
+                    "role": "Senior CD"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-l4oymmm",
+                    "name": "Ant",
+                    "role": "Strat Director"
+                }
+            ],
+            "members": [
+                {
+                    "freelancer": true,
+                    "id": "p-kyra-e",
+                    "name": "Kyra",
+                    "role": "Writer"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-paul-e",
+                    "name": "Paul",
+                    "role": "Writer"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-alison-e",
+                    "name": "Alison",
+                    "role": "Writer"
+                },
+                {
+                    "id": "p-nino-e",
+                    "name": "Nino",
+                    "role": "Writer (support)"
+                },
+                {
+                    "alloc": "mostly (P&O)",
+                    "id": "p-tarek-e",
+                    "name": "Tarek",
+                    "role": "Writer"
+                },
+                {
+                    "id": "p-bijoy-e",
+                    "name": "Bijoy",
+                    "role": "Senior Art"
+                },
+                {
+                    "id": "p-shibith-e",
+                    "name": "Shibith",
+                    "role": "Senior Art"
+                },
+                {
+                    "id": "p-ibrahim-e",
+                    "name": "Ibrahim",
+                    "role": "Senior Art"
+                },
+                {
+                    "id": "p-ida-e",
+                    "name": "Ida",
+                    "role": "Designer/AD"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-shuja-e",
+                    "name": "Shuja",
+                    "role": "Senior Art"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-akshay-e",
+                    "name": "Akshay",
+                    "role": "Art"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-nesiya-e",
+                    "name": "Nesiya",
+                    "role": "Design"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-vishnu-e",
+                    "name": "Vishnu",
+                    "role": "Design"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-anas-e",
+                    "name": "Anas",
+                    "role": "Design"
+                },
+                {
+                    "alloc": "mostly (P&O)",
+                    "id": "p-ross-e",
+                    "name": "Ross",
+                    "role": "Art"
+                },
+                {
+                    "id": "p-sameer-e",
+                    "name": "Sameer",
+                    "role": "Studio"
+                },
+                {
+                    "id": "p-raja-e",
+                    "name": "Raja",
+                    "role": "Studio"
+                },
+                {
+                    "id": "p-saheer-e",
+                    "name": "Saheer",
+                    "role": "Studio"
+                },
+                {
+                    "id": "p-alisar-e",
+                    "name": "Alisar",
+                    "role": "Arabic Copy"
+                }
+            ],
+            "name": "Etihad"
+        },
+        {
+            "clients": [
+                {
+                    "id": "c-rak",
+                    "name": "RAK",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-sadia",
+                    "name": "SADIA",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-jotun",
+                    "name": "JOTUN",
+                    "type": "project"
+                },
+                {
+                    "id": "id-3z9xrix",
+                    "name": "MOD",
+                    "type": "project"
+                },
+                {
+                    "id": "id-nk8pwgo",
+                    "name": "MCVITIES",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-google",
+                    "name": "GOOGLE",
+                    "type": "project"
+                },
+                {
+                    "id": "c-edb",
+                    "name": "EDB",
+                    "type": "project"
+                }
+            ],
+            "color": "#ec4899",
+            "id": "team1",
+            "leaders": [
+                {
+                    "freelancer": false,
+                    "id": "p-ricardo-1",
+                    "name": "Ricardo",
+                    "role": "Ass. Strat Director"
+                }
+            ],
+            "members": [
+                {
+                    "freelancer": false,
+                    "id": "p-liam",
+                    "name": "Liam",
+                    "role": "ACD"
+                },
+                {
+                    "id": "p-jitesh",
+                    "name": "Jitesh",
+                    "role": "Senior Art"
+                },
+                {
+                    "id": "id-oykfpwa",
+                    "name": "Hussam / Proofreader",
+                    "role": "Arabic Copy"
+                }
+            ],
+            "name": "Team 1"
+        },
+        {
+            "clients": [
+                {
+                    "id": "c-shamalall",
+                    "name": "SHAMAL ALL",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-ithra",
+                    "name": "ITHRA",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-gcdc",
+                    "name": "GCDC",
+                    "type": "project"
+                }
+            ],
+            "color": "#10b981",
+            "id": "team2",
+            "leaders": [
+                {
+                    "id": "p-rana-2",
+                    "name": "Rana",
+                    "role": "Senior CD"
+                },
+                {
+                    "id": "p-yasmina-6",
+                    "name": "Yasmina",
+                    "role": "Strat Director"
+                }
+            ],
+            "members": [
+                {
+                    "id": "p-sarah",
+                    "name": "Sarah",
+                    "role": "ACD"
+                },
+                {
+                    "id": "p-bassam",
+                    "name": "Bassam",
+                    "role": "ACD"
+                },
+                {
+                    "id": "p-raph",
+                    "name": "Raph",
+                    "role": "Senior Art"
+                },
+                {
+                    "id": "p-adnan",
+                    "name": "Adnan",
+                    "role": "Design"
+                },
+                {
+                    "id": "p-tala",
+                    "name": "Tala",
+                    "role": "Design"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-wassim",
+                    "name": "Wassim",
+                    "role": "Art"
+                }
+            ],
+            "name": "Team 2"
+        },
+        {
+            "clients": [
+                {
+                    "id": "c-poferries",
+                    "name": "P&O FERRIES",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-hp",
+                    "name": "HP",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-changan",
+                    "name": "CHANGAN",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-fmf",
+                    "name": "FMF",
+                    "type": "project"
+                },
+                {
+                    "id": "id-h2zqaky",
+                    "name": "DUBAI CUSTOMS",
+                    "type": "project"
+                }
+            ],
+            "color": "#06b6d4",
+            "id": "team4",
+            "leaders": [
+                {
+                    "freelancer": true,
+                    "id": "p-ant-4",
+                    "name": "Ant",
+                    "role": "Strat Director"
+                }
+            ],
+            "members": [
+                {
+                    "id": "p-tariq",
+                    "name": "Tariq",
+                    "role": "Art"
+                },
+                {
+                    "id": "p-ross",
+                    "name": "Ross",
+                    "role": "Art"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-740mk97",
+                    "name": "Fahad",
+                    "role": "Art"
+                }
+            ],
+            "name": "Team 3"
+        },
+        {
+            "clients": [
+                {
+                    "id": "c-oneonly",
+                    "name": "ONE & ONLY",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-dubaical",
+                    "name": "DUBAI CALENDAR",
+                    "type": "retainer"
+                },
+                {
+                    "id": "c-nakheel",
+                    "name": "NAKHEEL",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-77ixtsk",
+                    "name": "DUBAI SME",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-pvrcewo",
+                    "name": "STARBUCKS",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-s7db853",
+                    "name": "SHAMAL",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-spqnbon",
+                    "name": "P&O",
+                    "type": "retainer"
+                }
+            ],
+            "color": "#8b5cf6",
+            "id": "team5",
+            "leaders": [
+                {
+                    "id": "p-satin-5",
+                    "name": "Satyen",
+                    "role": "Senior CD"
+                }
+            ],
+            "members": [
+                {
+                    "id": "p-sajeesh-5",
+                    "name": "Shaheer",
+                    "role": "Copy"
+                },
+                {
+                    "id": "id-4xhw4i2",
+                    "name": "Christina",
+                    "role": "Copy"
+                },
+                {
+                    "anon": true,
+                    "id": "id-pkqtsf9",
+                    "name": "Shahan",
+                    "role": "Designer/AD"
+                },
+                {
+                    "id": "id-9yjomxm",
+                    "name": "Jean-Luc",
+                    "role": "Design"
+                },
+                {
+                    "id": "id-t0ndxcn",
+                    "name": "Maria",
+                    "role": "Design"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-2udjkzl",
+                    "name": "Sayeed Anas",
+                    "role": "Design"
+                },
+                {
+                    "id": "id-vviubda",
+                    "name": "Yasmina Lb",
+                    "role": "Copy"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-zjzwkci",
+                    "name": "Alissar",
+                    "role": "Arabic Copy"
+                },
+                {
+                    "id": "id-32nboti",
+                    "name": "Myriam H 20%",
+                    "role": "Copy"
+                },
+                {
+                    "id": "id-io5selx",
+                    "name": "Myriam R 40%",
+                    "role": "Copy"
+                },
+                {
+                    "id": "id-otqpgll",
+                    "name": "Lea 40%",
+                    "role": "Designer/AD"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-wam62b2",
+                    "name": "Karim Egypt",
+                    "role": "Arabic Copy"
+                }
+            ],
+            "name": "Team 4 - Social"
+        },
+        {
+            "clients": [
+                {
+                    "id": "id-pu2b4l4",
+                    "name": "ONE & ONLY",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-druma7x",
+                    "name": "P&O",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-qh6jv2l",
+                    "name": "STARBUCKS",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-brecaie",
+                    "name": "DUBAI SME",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-964fopg",
+                    "name": "SHAMAL",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-ajj2ak9",
+                    "name": "RAK",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-f17107w",
+                    "name": "SADIA",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-17kp6d9",
+                    "name": "ETIHAD",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-qmvep1n",
+                    "name": "SHAMAL",
+                    "type": "retainer"
+                },
+                {
+                    "id": "id-z3sq0we",
+                    "name": "GOOGLE",
+                    "type": "project"
+                },
+                {
+                    "id": "id-jm004bj",
+                    "name": "GCDC",
+                    "type": "project"
+                },
+                {
+                    "id": "id-inf3tmd",
+                    "name": "AWARDS CASE STUDIES",
+                    "type": "project"
+                },
+                {
+                    "id": "id-2aggwgi",
+                    "name": "OCCASION POST",
+                    "type": "project"
+                }
+            ],
+            "color": "#8b5cf6",
+            "id": "id-rcn9yga",
+            "leaders": [
+                {
+                    "id": "id-62sd0dz",
+                    "name": "Yasmin",
+                    "role": "Head of Production"
+                }
+            ],
+            "members": [
+                {
+                    "id": "id-jovhgs8",
+                    "name": "Ben",
+                    "role": "Motion"
+                },
+                {
+                    "id": "id-hq8w4rm",
+                    "name": "Khurram",
+                    "role": "Motion"
+                },
+                {
+                    "id": "id-kngq01w",
+                    "name": "Mo",
+                    "role": "Editor"
+                },
+                {
+                    "id": "id-tmu2wn1",
+                    "name": "Shabham",
+                    "role": "Motion"
+                },
+                {
+                    "id": "id-pakwd17",
+                    "name": "Mark",
+                    "role": "Motion"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-k80mi33",
+                    "name": "Ujval",
+                    "role": "Motion"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-ivt2ylr",
+                    "name": "Varun",
+                    "role": "Motion"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-y5xh7q0",
+                    "name": "Kailash",
+                    "role": "Motion"
+                },
+                {
+                    "id": "id-6twuapq",
+                    "name": "Kartik",
+                    "role": "Motion"
+                },
+                {
+                    "id": "id-p8mb8kf",
+                    "name": "Islam",
+                    "role": "Content Creator"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-oos2sf0",
+                    "name": "Ahmed",
+                    "role": "Content Creator"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-fvow54u",
+                    "name": "Ashwin",
+                    "role": "Content Creator"
+                },
+                {
+                    "freelancer": true,
+                    "id": "id-0v56rvc",
+                    "name": "Omar",
+                    "role": "Motion"
+                }
+            ],
+            "name": "The Farm"
+        },
+        {
+            "clients": [
+                {
+                    "id": "c-starbucks",
+                    "name": "STARBUCKS",
+                    "type": "retainer"
+                }
+            ],
+            "color": "#ef4444",
+            "id": "id-30qdt7q",
+            "leaders": [
+                {
+                    "id": "p-martino",
+                    "name": "Martino",
+                    "role": "CD"
+                },
+                {
+                    "id": "p-ricardo-2",
+                    "name": "Ricardo",
+                    "role": "Ass. Strat Director"
+                }
+            ],
+            "members": [
+                {
+                    "anon": true,
+                    "id": "p-rani",
+                    "name": "Rani",
+                    "role": "CD"
+                },
+                {
+                    "id": "id-phdawy0",
+                    "name": "Sarah",
+                    "role": "Design"
+                },
+                {
+                    "id": "id-f3sh46i",
+                    "name": "To hire Arabic",
+                    "role": "Writer"
+                },
+                {
+                    "id": "p-lucia",
+                    "name": "Lucia",
+                    "role": "Design"
+                },
+                {
+                    "freelancer": true,
+                    "id": "p-shirine",
+                    "name": "Shirine",
+                    "role": "Design"
+                }
+            ],
+            "name": "Starbucks"
+        }
+    ]
+}

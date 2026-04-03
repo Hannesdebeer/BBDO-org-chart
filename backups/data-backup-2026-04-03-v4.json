@@ -1,0 +1,166 @@
+{
+  "pool": [],
+  "teams": [
+    {
+      "id": "etihad",
+      "name": "Etihad",
+      "color": "#6366f1",
+      "dedicated": true,
+      "leaders": [
+        { "id": "p-satyen-e", "name": "Satyen", "role": "CD" }
+      ],
+      "members": [
+        { "id": "p-paul-e", "name": "Paul", "role": "Writer", "freelancer": true },
+        { "id": "p-kyra-e", "name": "Kyra", "role": "Writer", "freelancer": true },
+        { "id": "p-alison-e", "name": "Alison", "role": "Writer", "freelancer": true },
+        { "id": "p-nino-e", "name": "Nino", "role": "Writer (support)" },
+        { "id": "p-tarek-e", "name": "Tarek", "role": "Writer", "alloc": "mostly (P&O)" },
+        { "id": "p-bijoy-e", "name": "Bijoy", "role": "Senior Art" },
+        { "id": "p-shibith-e", "name": "Shibith", "role": "Senior Art" },
+        { "id": "p-ibrahim-e", "name": "Ibrahim", "role": "Senior Art" },
+        { "id": "p-ida-e", "name": "Ida", "role": "Designer/AD" },
+        { "id": "p-shuja-e", "name": "Shuja", "role": "Senior Art", "freelancer": true },
+        { "id": "p-akshay-e", "name": "Akshay", "role": "Art", "freelancer": true },
+        { "id": "p-nesiya-e", "name": "Nesiya", "role": "Design", "freelancer": true },
+        { "id": "p-vishnu-e", "name": "Vishnu", "role": "Design", "freelancer": true },
+        { "id": "p-anas-e", "name": "Anas", "role": "Design", "freelancer": true },
+        { "id": "p-ross-e", "name": "Ross", "role": "Art", "alloc": "mostly (P&O)" },
+        { "id": "p-sameer-e", "name": "Sameer", "role": "Studio" },
+        { "id": "p-raja-e", "name": "Raja", "role": "Studio" },
+        { "id": "p-saheer-e", "name": "Saheer", "role": "Studio" },
+        { "id": "p-kailash-e", "name": "Kailash", "role": "Motion" },
+        { "id": "p-karthik-e", "name": "Karthik", "role": "Motion" },
+        { "id": "p-ujwal-e", "name": "Ujwal", "role": "Motion" },
+        { "id": "p-varun-e", "name": "Varun", "role": "Motion" },
+        { "id": "p-alisar-e", "name": "Alisar", "role": "Arabic Copy" }
+      ],
+      "clients": []
+    },
+    {
+      "id": "team1",
+      "name": "Team 1",
+      "color": "#ec4899",
+      "leaders": [
+        { "id": "p-paulo-1", "name": "Paulo", "role": "Senior CD" },
+        { "id": "p-ricardo-1", "name": "Ricardo", "role": "Ass. Strat Director" }
+      ],
+      "members": [
+        { "id": "p-liam", "name": "Liam", "role": "Copy" },
+        { "id": "p-martino", "name": "Martino", "role": "Creative Director" },
+        { "id": "p-jitesh", "name": "Jitesh", "role": "Art" },
+        { "id": "p-lucia", "name": "Lucia", "role": "Design" }
+      ],
+      "clients": [
+        { "id": "c-rak", "name": "RAK", "type": "retainer" },
+        { "id": "c-sadia", "name": "SADIA", "type": "retainer" },
+        { "id": "c-jotun", "name": "JOTUN", "type": "retainer" },
+        { "id": "c-rdc", "name": "RDC", "type": "retainer" }
+      ]
+    },
+    {
+      "id": "team2",
+      "name": "Team 2",
+      "color": "#10b981",
+      "leaders": [
+        { "id": "p-rana-2", "name": "Rana", "role": "Senior CD" },
+        { "id": "p-ricardo-2", "name": "Ricardo", "role": "Ass. Strat Director" }
+      ],
+      "members": [
+        { "id": "p-sarah", "name": "Sarah", "role": "Copy" },
+        { "id": "p-shibith", "name": "Shibith", "role": "Art" }
+      ],
+      "clients": [
+        { "id": "c-oceanquest", "name": "OCEAN QUEST", "type": "retainer" },
+        { "id": "c-google", "name": "GOOGLE", "type": "retainer" },
+        { "id": "c-adocshamal", "name": "ADOC SHAMAL", "type": "retainer" },
+        { "id": "c-bgn", "name": "BGN", "type": "retainer" },
+        { "id": "c-oneonly", "name": "ONE & ONLY", "type": "retainer" },
+        { "id": "c-edb", "name": "EDB", "type": "retainer" }
+      ]
+    },
+    {
+      "id": "team3",
+      "name": "Team 3",
+      "color": "#f59e0b",
+      "leaders": [
+        { "id": "p-rana-3", "name": "Rana", "role": "Senior CD" },
+        { "id": "p-yasmina-3", "name": "Yasmina", "role": "Ass. Strat Director" }
+      ],
+      "members": [
+        { "id": "p-rana-d", "name": "Rana", "role": "Design" },
+        { "id": "p-bassam", "name": "Bassam", "role": "Copy" },
+        { "id": "p-tala", "name": "Tala", "role": "Art" },
+        { "id": "p-adnan", "name": "Adnan", "role": "Art" },
+        { "id": "p-shirine", "name": "Shirine", "role": "Freelancer", "freelancer": true }
+      ],
+      "clients": [
+        { "id": "c-shamalcorp", "name": "SHAMAL CORP/RE", "type": "retainer" },
+        { "id": "c-starbucks", "name": "STARBUCKS", "type": "retainer" },
+        { "id": "c-gcdc", "name": "GCDC", "type": "retainer" },
+        { "id": "c-rcu", "name": "RCU", "type": "retainer" }
+      ]
+    },
+    {
+      "id": "team4",
+      "name": "Team 4",
+      "color": "#06b6d4",
+      "leaders": [
+        { "id": "p-paulo-4", "name": "Paulo", "role": "Senior CD" },
+        { "id": "p-ant-4", "name": "Ant", "role": "Strat Director" }
+      ],
+      "members": [
+        { "id": "p-tariq", "name": "Tariq", "role": "Art" },
+        { "id": "p-ross", "name": "Ross", "role": "Art" }
+      ],
+      "clients": [
+        { "id": "c-po", "name": "P&O", "type": "retainer" },
+        { "id": "c-dpworld", "name": "DP WORLD", "type": "retainer" },
+        { "id": "c-poferries", "name": "P&O FERRIES", "type": "retainer" },
+        { "id": "c-dubaical", "name": "DUBAI CALENDAR", "type": "retainer" },
+        { "id": "c-xdubai", "name": "X DUBAI", "type": "retainer" },
+        { "id": "c-hp", "name": "HP", "type": "retainer" }
+      ]
+    },
+    {
+      "id": "team5",
+      "name": "Team 5",
+      "color": "#8b5cf6",
+      "leaders": [
+        { "id": "p-satin-5", "name": "Satin Adhikari", "role": "Senior CD" },
+        { "id": "p-ant-5", "name": "Ant", "role": "Strat Director" }
+      ],
+      "members": [
+        { "id": "p-rani", "name": "Rani", "role": "Copy" },
+        { "id": "p-wassim", "name": "Wassim", "role": "Art" },
+        { "id": "p-sajeesh-5", "name": "Sajeesh", "role": "Art" },
+        { "id": "p-sameer", "name": "Sameer", "role": "Art" }
+      ],
+      "clients": [
+        { "id": "c-changan", "name": "CHANGAN", "type": "retainer" },
+        { "id": "c-adds", "name": "ADDS", "type": "retainer" },
+        { "id": "c-nakheel", "name": "NAKHEEL", "type": "retainer" },
+        { "id": "c-shamalle", "name": "SHAMAL L&E", "type": "retainer" },
+        { "id": "c-ithra", "name": "ITHRA", "type": "retainer" },
+        { "id": "c-fmf", "name": "FMF", "type": "retainer" },
+        { "id": "c-mashreq", "name": "MASHREQ", "type": "retainer" }
+      ]
+    },
+    {
+      "id": "team6",
+      "name": "Team 6",
+      "color": "#ef4444",
+      "leaders": [
+        { "id": "p-satin-6", "name": "Satin Adhikari", "role": "Senior CD" },
+        { "id": "p-yasmina-6", "name": "Yasmina", "role": "Strat Director" }
+      ],
+      "members": [
+        { "id": "p-bernice", "name": "Bernice", "role": "Copy" },
+        { "id": "p-raph", "name": "Raph", "role": "Art" },
+        { "id": "p-sajeesh-6", "name": "Sajeesh", "role": "Art" }
+      ],
+      "clients": [
+        { "id": "c-shamalall", "name": "SHAMAL ALL", "type": "retainer" }
+      ]
+    }
+  ]
+}

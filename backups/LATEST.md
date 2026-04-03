@@ -1,6 +1,12 @@
 # Backup Log
 
-## Latest: v3 — 2026-04-03
+## Latest: v4 — 2026-04-03
+
+### v4 — 2026-04-03
+- Password protection
+- ? badge toggle for unknown/TBD people
+- Force reload with cache busting + session clear
+- Site taken offline after this backup
 
 ### v3 — 2026-04-03 10:30
 - Added auto force-refresh via Firebase version listener
