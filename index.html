@@ -307,53 +307,48 @@
   .main.hidden { display:none; }
   .filter-bar.hidden, .snapshot-bar.hidden { display:none; }
 
-  .scope-sidebar {
-    width:260px; min-width:260px; background:var(--bg2); border-right:1px solid var(--card-border);
-    display:flex; flex-direction:column; overflow:hidden;
-  }
-  .scope-sidebar-header { padding:14px 16px; border-bottom:1px solid var(--card-border); }
-  .scope-sidebar-header h3 { font-size:13px; font-weight:700; color:var(--text); }
-  .scope-client-list { flex:1; overflow-y:auto; padding:8px; }
-  .scope-client-item {
-    padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px;
-    border:1px solid transparent; transition:all .15s;
-  }
-  .scope-client-item:hover { background:var(--card-hover); }
-  .scope-client-item.active { background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.2); }
-  .scope-client-name { font-size:13px; font-weight:600; color:var(--text); }
-  .scope-client-type { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
-  .scope-client-type.retainer { color:var(--green); }
-  .scope-client-type.project { color:var(--accent); }
+  .scope-board { flex:1; display:flex; gap:12px; padding:16px; overflow-x:auto; align-items:flex-start; }
 
-  .scope-detail { flex:1; overflow-y:auto; padding:24px 32px; }
-  .scope-detail-empty { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-dim); font-size:14px; }
-  .scope-detail h2 { font-size:20px; font-weight:800; letter-spacing:-0.5px; margin-bottom:4px; }
-  .scope-type-badge {
-    display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
-    padding:3px 10px; border-radius:20px; margin-bottom:16px;
+  .scope-col {
+    min-width:250px; max-width:280px; flex-shrink:0; border-radius:14px;
+    background:var(--card-bg); border:1px solid var(--card-border); overflow:hidden; transition:all .2s;
   }
-  .scope-type-badge.retainer { background:rgba(16,185,129,0.12); color:#34d399; }
-  .scope-type-badge.project { background:rgba(99,102,241,0.12); color:#a5b4fc; }
+  .scope-col:hover { border-color:rgba(255,255,255,0.1); }
 
-  .scope-section { margin-bottom:24px; }
-  .scope-section h3 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:10px; }
+  .scope-header { padding:14px 14px 10px; border-bottom:1px solid var(--card-border); position:relative; }
+  .scope-top-bar { height:3px; position:absolute; top:0; left:0; right:0; }
+  .scope-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .scope-name { font-size:13px; font-weight:700; letter-spacing:-0.2px; text-transform:uppercase; }
+  .scope-meta { font-size:10px; color:var(--text-dim); margin-top:2px; padding-left:0; }
+  .scope-type-pill {
+    display:inline-block; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
+    padding:2px 6px; border-radius:10px; margin-left:6px;
+  }
+  .scope-type-pill.retainer { background:rgba(16,185,129,0.12); color:#34d399; }
+  .scope-type-pill.project { background:rgba(99,102,241,0.12); color:#a5b4fc; }
 
-  .scope-resource-table { width:100%; border-collapse:collapse; }
-  .scope-resource-table th {
-    text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
-    color:var(--text-dim); padding:6px 10px; border-bottom:1px solid var(--card-border);
+  .scope-role-row {
+    display:flex; align-items:center; padding:5px 14px; gap:8px; font-size:11px;
+    border-bottom:1px solid rgba(255,255,255,0.02);
   }
-  .scope-resource-table td {
-    font-size:12px; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.03); color:var(--text-mid);
-  }
-  .scope-resource-table tr:hover td { background:rgba(255,255,255,0.02); }
-  .scope-resource-table .alloc-cell { color:var(--green); font-weight:600; }
+  .scope-role-row:last-child { border-bottom:none; }
+  .scope-role-name { flex:1; color:var(--text-mid); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .scope-role-alloc { color:var(--green); font-weight:600; font-size:10px; flex-shrink:0; }
+  .scope-role-person { font-size:10px; color:var(--text-dim); flex-shrink:0; }
 
-  .scope-deliverable {
-    padding:8px 12px; border-radius:6px; background:var(--card-bg); border:1px solid var(--card-border);
-    margin-bottom:6px; font-size:12px; color:var(--text-mid); line-height:1.5;
+  .scope-assigned-list {
+    min-height:40px; padding:6px; margin:6px 8px 10px; border:1px dashed rgba(255,255,255,0.06);
+    border-radius:10px; transition:all .15s;
   }
-  .scope-deliverable strong { color:var(--text); }
+  .scope-assigned-list.drag-over { background:var(--drop-zone); border-color:rgba(99,102,241,0.3); }
+
+  .scope-deliverables { padding:6px 14px 12px; border-top:1px solid var(--card-border); margin-top:4px; }
+  .scope-del-item { font-size:10px; color:var(--text-dim); padding:3px 0; line-height:1.4; }
+  .scope-del-toggle {
+    font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim);
+    cursor:pointer; padding:4px 0; user-select:none;
+  }
+  .scope-del-toggle:hover { color:var(--text-mid); }
 
   .tab-btn { position:relative; }
   .tab-btn.active-tab { background:var(--accent); color:#fff; border-color:var(--accent); }
@@ -435,13 +430,16 @@
 
 <!-- Scopes View -->
 <div class="scopes-view" id="scopesView">
-  <div class="scope-sidebar">
-    <div class="scope-sidebar-header"><h3>Clients</h3></div>
-    <div class="scope-client-list" id="scopeClientList"></div>
+  <div class="pool" id="scopePool">
+    <div class="pool-header">
+      <h3>Unassigned <span class="pool-count" id="scopePoolCount"></span></h3>
+    </div>
+    <div class="pool-body">
+      <div class="pool-empty" id="scopePoolEmpty">Drag people here to<br>unassign from scopes</div>
+      <div class="people-list scope-assigned-list" data-scope="__pool" id="scopePoolList"></div>
+    </div>
   </div>
-  <div class="scope-detail" id="scopeDetail">
-    <div class="scope-detail-empty">Select a client to view scope</div>
-  </div>
+  <div class="scope-board" id="scopeBoard"></div>
 </div>
 
 <!-- Overlays -->
@@ -1292,7 +1290,8 @@ const SCOPES_DATA = [
   }
 ];
 
-let selectedScope = null;
+// Scope assignments stored in Firebase: { scopeId: [personObjects] }
+let scopeAssignments = {};
 
 function switchTab(tab) {
   const orgEls = [document.getElementById('filterBar'), document.getElementById('snapshotBar'), document.getElementById('mainView')];
@@ -1305,7 +1304,7 @@ function switchTab(tab) {
     scopesView.classList.add('active');
     tabOrg.classList.remove('active-tab');
     tabScopes.classList.add('active-tab');
-    renderScopesList();
+    renderScopes();
   } else {
     orgEls.forEach(el => el.classList.remove('hidden'));
     scopesView.classList.remove('active');
@@ -1314,50 +1313,154 @@ function switchTab(tab) {
   }
 }
 
-function renderScopesList() {
-  const list = document.getElementById('scopeClientList');
-  list.innerHTML = SCOPES_DATA.map(s => `
-    <div class="scope-client-item ${selectedScope===s.id?'active':''}" onclick="selectScope('${s.id}')">
-      <div class="scope-client-name">${s.name}</div>
-      <div class="scope-client-type ${s.type}">${s.type}</div>
-    </div>
-  `).join('');
+function renderScopePerson(p) {
+  const color = rc(p.role);
+  return `
+    <div class="person" draggable="true" data-person-id="${p.id}" data-name="${p.name}" data-role="${p.role}">
+      <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;">
+        ${getInitials(p.name)}
+      </div>
+      <div class="person-info">
+        <div class="person-name">${p.name}</div>
+        <div class="person-role">${p.role}</div>
+      </div>
+      ${p.freelancer ? '<span class="fl-badge">FL</span>' : ''}
+      ${p.anon ? '<span class="q-badge">?</span>' : ''}
+    </div>`;
 }
 
-function selectScope(id) {
-  selectedScope = id;
-  renderScopesList();
-  const s = SCOPES_DATA.find(x=>x.id===id);
-  if (!s) return;
-  const detail = document.getElementById('scopeDetail');
+function renderScopeCard(s) {
+  const assigned = scopeAssignments[s.id] || [];
+  const colors = {retainer:'#10b981', project:'#6366f1'};
+  const col = colors[s.type] || '#6366f1';
 
-  const teamHTML = s.team.length ? `
-    <div class="scope-section">
-      <h3>Team Resources Sold</h3>
-      <table class="scope-resource-table">
-        <thead><tr><th>Role</th>${s.team[0].name!==undefined?'<th>Name</th>':''}<th>Allocation</th></tr></thead>
-        <tbody>
-          ${s.team.map(t => `<tr>
-            <td>${t.role}</td>
-            ${t.name!==undefined?`<td>${t.name}</td>`:''}
-            <td class="alloc-cell">${t.alloc}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-  ` : '<div class="scope-section"><h3>Team Resources</h3><div class="scope-deliverable">Team breakdown not specified in scope document</div></div>';
+  return `
+    <div class="scope-col" data-scope-id="${s.id}">
+      <div class="scope-header">
+        <div class="scope-top-bar" style="background:linear-gradient(90deg,${col},transparent)"></div>
+        <div class="scope-header-row">
+          <div>
+            <div class="scope-name" style="color:${col}">${s.name}<span class="scope-type-pill ${s.type}">${s.type}</span></div>
+            <div class="scope-meta">${s.description}</div>
+          </div>
+        </div>
+      </div>
 
-  detail.innerHTML = `
-    <h2>${s.name}</h2>
-    <span class="scope-type-badge ${s.type}">${s.type}</span>
-    <p style="color:var(--text-mid);font-size:13px;margin-bottom:20px;">${s.description}</p>
-    ${s.budget ? `<div class="scope-section"><h3>Budget</h3><div class="scope-deliverable"><strong>${s.budget}</strong></div></div>` : ''}
-    ${teamHTML}
-    <div class="scope-section">
-      <h3>Deliverables</h3>
-      ${s.deliverables.map(d => `<div class="scope-deliverable">${d}</div>`).join('')}
-    </div>
-  `;
+      ${s.team.length ? `
+        <div class="section-label">Sold</div>
+        ${s.team.map(t => `
+          <div class="scope-role-row">
+            <span class="scope-role-name" title="${t.role}">${t.role}${t.name ? ' — '+t.name : ''}</span>
+            <span class="scope-role-alloc">${t.alloc}</span>
+          </div>
+        `).join('')}
+      ` : ''}
+
+      <div class="section-label">Assigned (${assigned.length}) <span class="add-btn" onclick="addPersonToScope('${s.id}')" title="Add person">+</span></div>
+      <div class="scope-assigned-list" data-scope="${s.id}">
+        ${assigned.map(p => renderScopePerson(p)).join('')}
+      </div>
+
+      <div class="scope-deliverables">
+        <div class="scope-del-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">Deliverables ▾</div>
+        <div style="display:none">
+          ${s.deliverables.map(d => '<div class="scope-del-item">• ' + d + '</div>').join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderScopes() {
+  const board = document.getElementById('scopeBoard');
+  board.innerHTML = SCOPES_DATA.map(s => renderScopeCard(s)).join('');
+
+  // Pool for scopes view — show all people from org chart
+  const allPeople = [...data.pool];
+  data.teams.forEach(t => { allPeople.push(...(t.leaders||[]), ...(t.members||[])); });
+  const scopePoolList = document.getElementById('scopePoolList');
+  const scopePoolEmpty = document.getElementById('scopePoolEmpty');
+  const scopePoolCount = document.getElementById('scopePoolCount');
+  scopePoolList.innerHTML = allPeople.map(p => renderScopePerson(p)).join('');
+  scopePoolEmpty.style.display = allPeople.length ? 'none' : 'block';
+  scopePoolCount.textContent = allPeople.length ? '(' + allPeople.length + ')' : '';
+
+  attachScopeDrag();
+}
+
+function addPersonToScope(scopeId) {
+  const name = prompt('Person name:');
+  if (!name) return;
+  const role = prompt('Role:\\n' + ROLES.map((r,i)=>(i+1)+'. '+r).join('\\n') + '\\n\\nType role name or number:');
+  if (!role) return;
+  const picked = ROLES[parseInt(role)-1] || role;
+  if (!scopeAssignments[scopeId]) scopeAssignments[scopeId] = [];
+  scopeAssignments[scopeId].push({ id:uid(), name, role:picked });
+  renderScopes();
+  saveScopeAssignments();
+}
+
+function saveScopeAssignments() {
+  db.ref('scopeAssignments').set(scopeAssignments);
+}
+
+function attachScopeDrag() {
+  let sDragItem=null, sDragSource=null;
+
+  document.querySelectorAll('#scopesView .person[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      const pid = el.dataset.personId;
+      const scopeList = el.closest('.scope-assigned-list');
+      sDragSource = scopeList ? scopeList.dataset.scope : null;
+
+      // Find the person in scope assignments or org data
+      if (sDragSource && sDragSource !== '__pool') {
+        sDragItem = (scopeAssignments[sDragSource]||[]).find(p=>p.id===pid);
+      } else {
+        // From pool — clone the person (don't remove from org chart)
+        const allPeople = [...data.pool];
+        data.teams.forEach(t => { allPeople.push(...(t.leaders||[]), ...(t.members||[])); });
+        const found = allPeople.find(p=>p.id===pid);
+        if (found) sDragItem = {...found, id:uid()};
+      }
+
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain', pid);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
+      sDragItem=null; sDragSource=null;
+    });
+  });
+
+  document.querySelectorAll('.scope-assigned-list').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if (!sDragItem) return;
+      const tgtScope = zone.dataset.scope;
+
+      // Remove from source scope (if not from pool)
+      if (sDragSource && sDragSource !== '__pool' && scopeAssignments[sDragSource]) {
+        scopeAssignments[sDragSource] = scopeAssignments[sDragSource].filter(p=>p.id!==sDragItem.id);
+      }
+
+      // Add to target scope (not if dropping back to pool)
+      if (tgtScope !== '__pool') {
+        if (!scopeAssignments[tgtScope]) scopeAssignments[tgtScope] = [];
+        // Avoid duplicates
+        if (!scopeAssignments[tgtScope].find(p=>p.id===sDragItem.id)) {
+          scopeAssignments[tgtScope].push(sDragItem);
+        }
+      }
+
+      renderScopes();
+      saveScopeAssignments();
+      showToast(sDragItem.name + ' → ' + (tgtScope==='__pool' ? 'Unassigned' : SCOPES_DATA.find(s=>s.id===tgtScope)?.name || tgtScope));
+    });
+  });
 }
 
 // ═══════════════════════════════════════
@@ -1404,6 +1507,12 @@ document.addEventListener('keydown', e => {
     await db.ref('orgchart').set(data);
   }
 
+  // Load scope assignments
+  const scopeSnap = await db.ref('scopeAssignments').once('value');
+  if (scopeSnap.val()) scopeAssignments = scopeSnap.val();
+  // Fix null arrays from Firebase
+  SCOPES_DATA.forEach(s => { if (!scopeAssignments[s.id]) scopeAssignments[s.id] = []; });
+
   loadSnapshots();
   renderSnapshotBar();
   render();
@@ -1415,6 +1524,17 @@ document.addEventListener('keydown', e => {
     if (remote && remote.teams) {
       data = fixTeamArrays(remote);
       render();
+      // Re-render scopes if visible
+      if (document.getElementById('scopesView').classList.contains('active')) renderScopes();
+    }
+  });
+
+  // Real-time listener for scope assignments
+  db.ref('scopeAssignments').on('value', snap => {
+    if (snap.val()) {
+      scopeAssignments = snap.val();
+      SCOPES_DATA.forEach(s => { if (!scopeAssignments[s.id]) scopeAssignments[s.id] = []; });
+      if (document.getElementById('scopesView').classList.contains('active')) renderScopes();
     }
   });
 
