@@ -302,53 +302,123 @@
   .team-col:nth-child(7){animation-delay:.24s} .team-col:nth-child(8){animation-delay:.28s}
 
   /* ── SCOPES VIEW ── */
-  .scopes-view { display:none; flex:1; overflow:hidden; }
+  .scopes-view { display:none; flex:1; overflow:hidden; flex-direction:column; }
   .scopes-view.active { display:flex; }
   .main.hidden { display:none; }
   .filter-bar.hidden, .snapshot-bar.hidden { display:none; }
 
-  .scope-board { flex:1; display:flex; gap:12px; padding:16px; overflow-x:auto; align-items:flex-start; }
-
-  .scope-col {
-    min-width:250px; max-width:280px; flex-shrink:0; border-radius:14px;
-    background:var(--card-bg); border:1px solid var(--card-border); overflow:hidden; transition:all .2s;
+  /* Client menu bar */
+  .scope-menu {
+    display:flex; align-items:center; gap:6px; padding:10px 24px;
+    border-bottom:1px solid var(--card-border); background:var(--bg2); flex-wrap:wrap;
   }
-  .scope-col:hover { border-color:rgba(255,255,255,0.1); }
+  .scope-menu-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-right:4px; }
+  .scope-menu-btn {
+    padding:5px 12px; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer;
+    border:1px solid var(--card-border); background:transparent; color:var(--text-dim); transition:all .15s;
+  }
+  .scope-menu-btn:hover { border-color:rgba(255,255,255,0.15); color:var(--text-mid); }
+  .scope-menu-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .scope-menu-btn.retainer-pill { border-color:rgba(16,185,129,0.3); }
+  .scope-menu-btn.retainer-pill.active { background:#10b981; border-color:#10b981; }
+  .scope-menu-btn.project-pill { border-color:rgba(99,102,241,0.3); }
+  .scope-menu-btn.project-pill.active { background:#6366f1; border-color:#6366f1; }
 
-  .scope-header { padding:14px 14px 10px; border-bottom:1px solid var(--card-border); position:relative; }
-  .scope-top-bar { height:3px; position:absolute; top:0; left:0; right:0; }
-  .scope-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
-  .scope-name { font-size:13px; font-weight:700; letter-spacing:-0.2px; text-transform:uppercase; }
-  .scope-meta { font-size:10px; color:var(--text-dim); margin-top:2px; padding-left:0; }
+  /* Scope split layout */
+  .scope-split { flex:1; display:flex; overflow:hidden; }
+
+  /* Left: Scope detail */
+  .scope-left {
+    width:380px; min-width:340px; border-right:1px solid var(--card-border);
+    background:var(--bg2); overflow-y:auto; display:flex; flex-direction:column;
+  }
+  .scope-left-header { padding:16px 18px 12px; border-bottom:1px solid var(--card-border); }
+  .scope-left-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .scope-left-desc { font-size:11px; color:var(--text-dim); margin-top:4px; line-height:1.5; }
+  .scope-left-budget { font-size:10px; color:var(--amber); margin-top:4px; font-weight:600; }
   .scope-type-pill {
     display:inline-block; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
-    padding:2px 6px; border-radius:10px; margin-left:6px;
+    padding:2px 6px; border-radius:10px; margin-left:8px;
   }
   .scope-type-pill.retainer { background:rgba(16,185,129,0.12); color:#34d399; }
   .scope-type-pill.project { background:rgba(99,102,241,0.12); color:#a5b4fc; }
 
+  .scope-role-section { padding:8px 0; }
   .scope-role-row {
-    display:flex; align-items:center; padding:5px 14px; gap:8px; font-size:11px;
+    display:flex; align-items:center; padding:6px 18px; gap:8px; font-size:11px;
     border-bottom:1px solid rgba(255,255,255,0.02);
   }
   .scope-role-row:last-child { border-bottom:none; }
   .scope-role-name { flex:1; color:var(--text-mid); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .scope-role-alloc { color:var(--green); font-weight:600; font-size:10px; flex-shrink:0; }
-  .scope-role-person { font-size:10px; color:var(--text-dim); flex-shrink:0; }
+  .scope-role-named { font-size:10px; color:var(--text-dim); flex-shrink:0; }
 
-  .scope-assigned-list {
-    min-height:40px; padding:6px; margin:6px 8px 10px; border:1px dashed rgba(255,255,255,0.06);
-    border-radius:10px; transition:all .15s;
-  }
-  .scope-assigned-list.drag-over { background:var(--drop-zone); border-color:rgba(99,102,241,0.3); }
-
-  .scope-deliverables { padding:6px 14px 12px; border-top:1px solid var(--card-border); margin-top:4px; }
+  .scope-deliverables { padding:8px 18px 14px; border-top:1px solid var(--card-border); margin-top:auto; }
   .scope-del-item { font-size:10px; color:var(--text-dim); padding:3px 0; line-height:1.4; }
   .scope-del-toggle {
     font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim);
     cursor:pointer; padding:4px 0; user-select:none;
   }
   .scope-del-toggle:hover { color:var(--text-mid); }
+
+  /* Right: Assignment panel */
+  .scope-right { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .scope-right-header {
+    padding:12px 18px; border-bottom:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .scope-right-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+
+  .scope-assign-body { flex:1; display:flex; overflow:hidden; }
+
+  /* Assignment drop zone */
+  .scope-drop-zone {
+    flex:1; overflow-y:auto; padding:12px;
+  }
+  .scope-slot {
+    display:flex; align-items:center; gap:10px; padding:8px 12px; margin-bottom:4px;
+    border-radius:10px; border:1px dashed rgba(255,255,255,0.06); background:rgba(255,255,255,0.015);
+    min-height:42px; transition:all .15s;
+  }
+  .scope-slot.drag-over { background:var(--drop-zone); border-color:rgba(99,102,241,0.3); }
+  .scope-slot.filled { border-style:solid; border-color:rgba(255,255,255,0.06); background:var(--card-bg); }
+  .scope-slot-role { font-size:10px; color:var(--text-dim); min-width:120px; flex-shrink:0; }
+  .scope-slot-alloc { font-size:10px; color:var(--green); font-weight:600; flex-shrink:0; width:40px; text-align:right; }
+  .scope-slot-person { flex:1; display:flex; align-items:center; gap:8px; min-width:0; }
+  .scope-slot-empty { font-size:10px; color:var(--text-dim); font-style:italic; }
+  .scope-slot-remove {
+    width:20px; height:20px; border:none; border-radius:4px; background:rgba(255,255,255,0.06);
+    color:var(--text-dim); cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;
+    transition:all .15s; flex-shrink:0;
+  }
+  .scope-slot-remove:hover { background:rgba(239,68,68,0.15); color:var(--red); }
+  .scope-extra-drop {
+    min-height:50px; padding:8px; margin:8px 12px; border:1px dashed rgba(255,255,255,0.06);
+    border-radius:10px; transition:all .15s;
+  }
+  .scope-extra-drop.drag-over { background:var(--drop-zone); border-color:rgba(99,102,241,0.3); }
+
+  /* People pool on right */
+  .scope-people-pool {
+    width:240px; min-width:240px; border-left:1px solid var(--card-border);
+    background:var(--bg2); display:flex; flex-direction:column; overflow:hidden;
+  }
+  .scope-people-pool .pool-header { padding:12px 14px 8px; border-bottom:1px solid var(--card-border); }
+  .scope-people-pool .pool-header h3 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); }
+  .scope-people-pool .pool-body { flex:1; overflow-y:auto; padding:6px; }
+  .scope-people-pool .pool-search {
+    margin:6px 8px; padding:5px 8px; border-radius:6px; border:1px solid var(--card-border);
+    background:var(--card-bg); color:var(--text); font-size:10px; font-family:inherit; outline:none; width:calc(100% - 16px);
+  }
+  .scope-people-pool .pool-search:focus { border-color:var(--accent); }
+
+  /* Capacity badge */
+  .capacity-badge {
+    font-size:8px; font-weight:700; padding:1px 5px; border-radius:3px; flex-shrink:0;
+  }
+  .capacity-ok { background:rgba(16,185,129,0.12); color:#34d399; }
+  .capacity-warn { background:rgba(245,158,11,0.12); color:#fbbf24; }
+  .capacity-over { background:rgba(239,68,68,0.15); color:#ef4444; }
 
   .tab-btn { position:relative; }
   .tab-btn.active-tab { background:var(--accent); color:#fff; border-color:var(--accent); }
@@ -430,16 +500,29 @@
 
 <!-- Scopes View -->
 <div class="scopes-view" id="scopesView">
-  <div class="pool" id="scopePool">
-    <div class="pool-header">
-      <h3>Unassigned <span class="pool-count" id="scopePoolCount"></span></h3>
+  <div class="scope-menu" id="scopeMenu"></div>
+  <div class="scope-split">
+    <div class="scope-left" id="scopeLeft">
+      <div style="padding:40px;text-align:center;color:var(--text-dim);font-size:12px;">Select a client above</div>
     </div>
-    <div class="pool-body">
-      <div class="pool-empty" id="scopePoolEmpty">Drag people here to<br>unassign from scopes</div>
-      <div class="people-list scope-assigned-list" data-scope="__pool" id="scopePoolList"></div>
+    <div class="scope-right">
+      <div class="scope-right-header">
+        <span class="scope-right-title" id="scopeRightTitle">Team Assignment</span>
+      </div>
+      <div class="scope-assign-body">
+        <div class="scope-drop-zone" id="scopeDropZone">
+          <div style="padding:40px;text-align:center;color:var(--text-dim);font-size:12px;">Select a client to assign team</div>
+        </div>
+        <div class="scope-people-pool">
+          <div class="pool-header">
+            <h3>People <span class="pool-count" id="scopePoolCount"></span></h3>
+          </div>
+          <input class="pool-search" placeholder="Search people..." oninput="filterScopePool(this.value)">
+          <div class="pool-body" id="scopePoolList"></div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="scope-board" id="scopeBoard"></div>
 </div>
 
 <!-- Overlays -->
@@ -1290,8 +1373,11 @@ const SCOPES_DATA = [
   }
 ];
 
-// Scope assignments stored in Firebase: { scopeId: [personObjects] }
+// Scope assignments stored in Firebase: { scopeId: { slotIndex: {personId, personName, personRole, alloc} } }
+// Also supports extra assignments beyond sold slots
 let scopeAssignments = {};
+let activeScope = null;
+let scopePoolFilter = '';
 
 function switchTab(tab) {
   const orgEls = [document.getElementById('filterBar'), document.getElementById('snapshotBar'), document.getElementById('mainView')];
@@ -1304,7 +1390,8 @@ function switchTab(tab) {
     scopesView.classList.add('active');
     tabOrg.classList.remove('active-tab');
     tabScopes.classList.add('active-tab');
-    renderScopes();
+    renderScopeMenu();
+    if (!activeScope && SCOPES_DATA.length) selectScope(SCOPES_DATA[0].id);
   } else {
     orgEls.forEach(el => el.classList.remove('hidden'));
     scopesView.classList.remove('active');
@@ -1313,90 +1400,244 @@ function switchTab(tab) {
   }
 }
 
-function renderScopePerson(p) {
-  const color = rc(p.role);
-  return `
-    <div class="person" draggable="true" data-person-id="${p.id}" data-name="${p.name}" data-role="${p.role}">
-      <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;">
-        ${getInitials(p.name)}
-      </div>
-      <div class="person-info">
-        <div class="person-name">${p.name}</div>
-        <div class="person-role">${p.role}</div>
-      </div>
-      ${p.freelancer ? '<span class="fl-badge">FL</span>' : ''}
-      ${p.anon ? '<span class="q-badge">?</span>' : ''}
-    </div>`;
+// Calculate total allocated % for a person across ALL scopes
+function getPersonTotalAlloc(personId) {
+  let total = 0;
+  for (const scopeId of Object.keys(scopeAssignments)) {
+    const sa = scopeAssignments[scopeId];
+    if (!sa) continue;
+    // Check slot assignments
+    if (sa.slots) {
+      for (const slot of Object.values(sa.slots)) {
+        if (slot && slot.personId === personId) {
+          total += parseFloat(slot.alloc) || 0;
+        }
+      }
+    }
+    // Check extra assignments
+    if (sa.extra) {
+      for (const ex of Object.values(sa.extra)) {
+        if (ex && ex.personId === personId) {
+          total += parseFloat(ex.alloc) || 0;
+        }
+      }
+    }
+  }
+  return total;
 }
 
-function renderScopeCard(s) {
-  const assigned = scopeAssignments[s.id] || [];
-  const colors = {retainer:'#10b981', project:'#6366f1'};
-  const col = colors[s.type] || '#6366f1';
+function getCapacityClass(used) {
+  if (used > 100) return 'capacity-over';
+  if (used >= 80) return 'capacity-warn';
+  return 'capacity-ok';
+}
 
-  return `
-    <div class="scope-col" data-scope-id="${s.id}">
-      <div class="scope-header">
-        <div class="scope-top-bar" style="background:linear-gradient(90deg,${col},transparent)"></div>
-        <div class="scope-header-row">
-          <div>
-            <div class="scope-name" style="color:${col}">${s.name}<span class="scope-type-pill ${s.type}">${s.type}</span></div>
-            <div class="scope-meta">${s.description}</div>
-          </div>
-        </div>
-      </div>
+function getAllPeople() {
+  const all = [...(data.pool||[])];
+  (data.teams||[]).forEach(t => { all.push(...(t.leaders||[]), ...(t.members||[])); });
+  return all;
+}
 
-      ${s.team.length ? `
-        <div class="section-label">Sold</div>
-        ${s.team.map(t => `
+function renderScopeMenu() {
+  const menu = document.getElementById('scopeMenu');
+  menu.innerHTML = '<span class="scope-menu-label">Clients</span>' +
+    SCOPES_DATA.map(s => {
+      const cls = s.type === 'retainer' ? 'retainer-pill' : 'project-pill';
+      const active = activeScope === s.id ? ' active' : '';
+      return `<button class="scope-menu-btn ${cls}${active}" onclick="selectScope('${s.id}')">${s.name}</button>`;
+    }).join('');
+}
+
+function selectScope(scopeId) {
+  activeScope = scopeId;
+  renderScopeMenu();
+  renderScopeLeft();
+  renderScopeRight();
+}
+
+function renderScopeLeft() {
+  const s = SCOPES_DATA.find(x => x.id === activeScope);
+  if (!s) return;
+  const left = document.getElementById('scopeLeft');
+  const col = s.type === 'retainer' ? '#10b981' : '#6366f1';
+
+  left.innerHTML = `
+    <div class="scope-left-header">
+      <div class="scope-left-title" style="color:${col}">${s.name}<span class="scope-type-pill ${s.type}">${s.type}</span></div>
+      <div class="scope-left-desc">${s.description}</div>
+      ${s.budget ? '<div class="scope-left-budget">' + s.budget + '</div>' : ''}
+    </div>
+    ${s.team.length ? `
+      <div class="section-label" style="padding:10px 18px 4px">Sold Resources</div>
+      <div class="scope-role-section">
+        ${s.team.map((t,i) => `
           <div class="scope-role-row">
-            <span class="scope-role-name" title="${t.role}">${t.role}${t.name ? ' — '+t.name : ''}</span>
+            <span class="scope-role-name" title="${t.role}">${t.role}</span>
+            ${t.name ? '<span class="scope-role-named">' + t.name + '</span>' : ''}
             <span class="scope-role-alloc">${t.alloc}</span>
           </div>
         `).join('')}
-      ` : ''}
-
-      <div class="section-label">Assigned (${assigned.length}) <span class="add-btn" onclick="addPersonToScope('${s.id}')" title="Add person">+</span></div>
-      <div class="scope-assigned-list" data-scope="${s.id}">
-        ${assigned.map(p => renderScopePerson(p)).join('')}
       </div>
-
-      <div class="scope-deliverables">
-        <div class="scope-del-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">Deliverables ▾</div>
-        <div style="display:none">
-          ${s.deliverables.map(d => '<div class="scope-del-item">• ' + d + '</div>').join('')}
-        </div>
+    ` : '<div style="padding:18px;color:var(--text-dim);font-size:11px;">No team resources defined in scope</div>'}
+    <div class="scope-deliverables">
+      <div class="scope-del-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">Deliverables ▾</div>
+      <div style="display:none">
+        ${s.deliverables.map(d => '<div class="scope-del-item">• ' + d + '</div>').join('')}
       </div>
     </div>`;
 }
 
-function renderScopes() {
-  const board = document.getElementById('scopeBoard');
-  board.innerHTML = SCOPES_DATA.map(s => renderScopeCard(s)).join('');
+function renderScopeRight() {
+  const s = SCOPES_DATA.find(x => x.id === activeScope);
+  if (!s) return;
+  const zone = document.getElementById('scopeDropZone');
+  const title = document.getElementById('scopeRightTitle');
+  title.textContent = s.name + ' — Team Assignment';
 
-  // Pool for scopes view — show all people from org chart
-  const allPeople = [...data.pool];
-  data.teams.forEach(t => { allPeople.push(...(t.leaders||[]), ...(t.members||[])); });
-  const scopePoolList = document.getElementById('scopePoolList');
-  const scopePoolEmpty = document.getElementById('scopePoolEmpty');
-  const scopePoolCount = document.getElementById('scopePoolCount');
-  scopePoolList.innerHTML = allPeople.map(p => renderScopePerson(p)).join('');
-  scopePoolEmpty.style.display = allPeople.length ? 'none' : 'block';
-  scopePoolCount.textContent = allPeople.length ? '(' + allPeople.length + ')' : '';
+  const sa = scopeAssignments[activeScope] || {};
+  const slots = sa.slots || {};
+  const extras = sa.extra ? Object.values(sa.extra).filter(Boolean) : [];
 
+  // Render slots for each sold role
+  let html = '';
+  if (s.team.length) {
+    html += '<div class="section-label" style="padding:4px 0 6px">Sold Positions</div>';
+    s.team.forEach((t, i) => {
+      const slot = slots[i];
+      const allocNum = parseFloat(t.alloc) || 0;
+      if (slot && slot.personId) {
+        const totalUsed = getPersonTotalAlloc(slot.personId);
+        const remaining = 100 - totalUsed;
+        const capClass = getCapacityClass(totalUsed);
+        const color = rc(slot.personRole || t.role);
+        html += `
+          <div class="scope-slot filled" data-slot-index="${i}">
+            <span class="scope-slot-role">${t.role}</span>
+            <span class="scope-slot-alloc">${t.alloc}</span>
+            <div class="scope-slot-person">
+              <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;">
+                ${getInitials(slot.personName)}
+              </div>
+              <div style="min-width:0;">
+                <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.personName}</div>
+                <div style="font-size:9px;color:var(--text-dim);">${slot.personRole||''}</div>
+              </div>
+            </div>
+            <span class="capacity-badge ${capClass}">${remaining}% left</span>
+            <button class="scope-slot-remove" onclick="removeFromSlot(${i})" title="Remove">✕</button>
+          </div>`;
+      } else {
+        html += `
+          <div class="scope-slot" data-slot-index="${i}" data-slot-alloc="${allocNum}">
+            <span class="scope-slot-role">${t.role}</span>
+            <span class="scope-slot-alloc">${t.alloc}</span>
+            <span class="scope-slot-empty">Drop person here</span>
+          </div>`;
+      }
+    });
+  }
+
+  // Extra assignments
+  html += '<div class="section-label" style="padding:10px 0 6px">Additional Team <span class="add-btn" onclick="addExtraPerson()" title="Add">+</span></div>';
+  extras.forEach((ex, i) => {
+    const totalUsed = getPersonTotalAlloc(ex.personId);
+    const remaining = 100 - totalUsed;
+    const capClass = getCapacityClass(totalUsed);
+    const color = rc(ex.personRole || '');
+    html += `
+      <div class="scope-slot filled">
+        <span class="scope-slot-role">${ex.scopeRole || 'Unspecified'}</span>
+        <span class="scope-slot-alloc">${ex.alloc}%</span>
+        <div class="scope-slot-person">
+          <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;">
+            ${getInitials(ex.personName)}
+          </div>
+          <div style="min-width:0;">
+            <div style="font-size:11px;font-weight:600;">${ex.personName}</div>
+            <div style="font-size:9px;color:var(--text-dim);">${ex.personRole||''}</div>
+          </div>
+        </div>
+        <span class="capacity-badge ${capClass}">${remaining}% left</span>
+        <button class="scope-slot-remove" onclick="removeExtra(${i})" title="Remove">✕</button>
+      </div>`;
+  });
+
+  html += `<div class="scope-extra-drop" id="scopeExtraDrop"><div style="text-align:center;font-size:10px;color:var(--text-dim);padding:8px;">Drop here to add (will ask for %)</div></div>`;
+
+  zone.innerHTML = html;
+
+  // Render people pool
+  renderScopePool();
   attachScopeDrag();
 }
 
-function addPersonToScope(scopeId) {
+function renderScopePool() {
+  const allPeople = getAllPeople();
+  const poolList = document.getElementById('scopePoolList');
+  const poolCount = document.getElementById('scopePoolCount');
+
+  const filtered = scopePoolFilter
+    ? allPeople.filter(p => p.name.toLowerCase().includes(scopePoolFilter) || (p.role||'').toLowerCase().includes(scopePoolFilter))
+    : allPeople;
+
+  poolCount.textContent = '(' + allPeople.length + ')';
+  poolList.innerHTML = filtered.map(p => {
+    const totalUsed = getPersonTotalAlloc(p.id);
+    const remaining = 100 - totalUsed;
+    const capClass = getCapacityClass(totalUsed);
+    const color = rc(p.role);
+    return `
+      <div class="person" draggable="true" data-person-id="${p.id}" data-name="${p.name}" data-role="${p.role}" style="margin-bottom:1px;">
+        <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;">
+          ${getInitials(p.name)}
+        </div>
+        <div class="person-info">
+          <div class="person-name" style="font-size:11px;">${p.name}</div>
+          <div class="person-role">${p.role||''}</div>
+        </div>
+        ${totalUsed > 0 ? '<span class="capacity-badge ' + capClass + '">' + remaining + '%</span>' : ''}
+        ${p.freelancer ? '<span class="fl-badge">FL</span>' : ''}
+      </div>`;
+  }).join('');
+}
+
+function filterScopePool(q) {
+  scopePoolFilter = q.toLowerCase().trim();
+  renderScopePool();
+  attachScopeDrag();
+}
+
+function removeFromSlot(slotIndex) {
+  if (!scopeAssignments[activeScope]) return;
+  if (!scopeAssignments[activeScope].slots) return;
+  delete scopeAssignments[activeScope].slots[slotIndex];
+  saveScopeAssignments();
+  renderScopeRight();
+}
+
+function removeExtra(extraIndex) {
+  if (!scopeAssignments[activeScope]) return;
+  const extras = scopeAssignments[activeScope].extra || [];
+  const valid = Object.values(extras).filter(Boolean);
+  valid.splice(extraIndex, 1);
+  scopeAssignments[activeScope].extra = valid;
+  saveScopeAssignments();
+  renderScopeRight();
+}
+
+function addExtraPerson() {
   const name = prompt('Person name:');
   if (!name) return;
-  const role = prompt('Role:\\n' + ROLES.map((r,i)=>(i+1)+'. '+r).join('\\n') + '\\n\\nType role name or number:');
-  if (!role) return;
-  const picked = ROLES[parseInt(role)-1] || role;
-  if (!scopeAssignments[scopeId]) scopeAssignments[scopeId] = [];
-  scopeAssignments[scopeId].push({ id:uid(), name, role:picked });
-  renderScopes();
+  const allocStr = prompt('Allocation % for this scope:', '20');
+  if (!allocStr) return;
+  const alloc = parseFloat(allocStr) || 20;
+  if (!scopeAssignments[activeScope]) scopeAssignments[activeScope] = {};
+  if (!scopeAssignments[activeScope].extra) scopeAssignments[activeScope].extra = [];
+  scopeAssignments[activeScope].extra.push({
+    personId: uid(), personName: name, personRole: '', scopeRole: 'Unspecified', alloc
+  });
   saveScopeAssignments();
+  renderScopeRight();
 }
 
 function saveScopeAssignments() {
@@ -1404,63 +1645,82 @@ function saveScopeAssignments() {
 }
 
 function attachScopeDrag() {
-  let sDragItem=null, sDragSource=null;
+  let sDragItem = null;
 
   document.querySelectorAll('#scopesView .person[draggable]').forEach(el => {
     el.addEventListener('dragstart', e => {
       const pid = el.dataset.personId;
-      const scopeList = el.closest('.scope-assigned-list');
-      sDragSource = scopeList ? scopeList.dataset.scope : null;
-
-      // Find the person in scope assignments or org data
-      if (sDragSource && sDragSource !== '__pool') {
-        sDragItem = (scopeAssignments[sDragSource]||[]).find(p=>p.id===pid);
-      } else {
-        // From pool — clone the person (don't remove from org chart)
-        const allPeople = [...data.pool];
-        data.teams.forEach(t => { allPeople.push(...(t.leaders||[]), ...(t.members||[])); });
-        const found = allPeople.find(p=>p.id===pid);
-        if (found) sDragItem = {...found, id:uid()};
-      }
-
+      const allPeople = getAllPeople();
+      const found = allPeople.find(p => p.id === pid);
+      if (found) sDragItem = found;
       el.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.effectAllowed = 'copy';
       e.dataTransfer.setData('text/plain', pid);
+      const ghost = document.getElementById('dragGhost');
+      ghost.textContent = found ? found.name : pid;
+      ghost.style.display = 'block';
+      e.dataTransfer.setDragImage(ghost, 0, 0);
     });
     el.addEventListener('dragend', () => {
       el.classList.remove('dragging');
-      document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
-      sDragItem=null; sDragSource=null;
+      document.getElementById('dragGhost').style.display = 'none';
+      document.querySelectorAll('.drag-over').forEach(d => d.classList.remove('drag-over'));
+      sDragItem = null;
     });
   });
 
-  document.querySelectorAll('.scope-assigned-list').forEach(zone => {
-    zone.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => {
-      e.preventDefault(); zone.classList.remove('drag-over');
+  // Slot drop targets
+  document.querySelectorAll('.scope-slot:not(.filled)').forEach(slot => {
+    slot.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; slot.classList.add('drag-over'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', e => {
+      e.preventDefault(); slot.classList.remove('drag-over');
       if (!sDragItem) return;
-      const tgtScope = zone.dataset.scope;
+      const slotIndex = parseInt(slot.dataset.slotIndex);
+      const s = SCOPES_DATA.find(x => x.id === activeScope);
+      const allocNum = parseFloat(s.team[slotIndex].alloc) || 0;
 
-      // Remove from source scope (if not from pool)
-      if (sDragSource && sDragSource !== '__pool' && scopeAssignments[sDragSource]) {
-        scopeAssignments[sDragSource] = scopeAssignments[sDragSource].filter(p=>p.id!==sDragItem.id);
-      }
-
-      // Add to target scope (not if dropping back to pool)
-      if (tgtScope !== '__pool') {
-        if (!scopeAssignments[tgtScope]) scopeAssignments[tgtScope] = [];
-        // Avoid duplicates
-        if (!scopeAssignments[tgtScope].find(p=>p.id===sDragItem.id)) {
-          scopeAssignments[tgtScope].push(sDragItem);
-        }
-      }
-
-      renderScopes();
+      if (!scopeAssignments[activeScope]) scopeAssignments[activeScope] = {};
+      if (!scopeAssignments[activeScope].slots) scopeAssignments[activeScope].slots = {};
+      scopeAssignments[activeScope].slots[slotIndex] = {
+        personId: sDragItem.id,
+        personName: sDragItem.name,
+        personRole: sDragItem.role || '',
+        alloc: allocNum
+      };
       saveScopeAssignments();
-      showToast(sDragItem.name + ' → ' + (tgtScope==='__pool' ? 'Unassigned' : SCOPES_DATA.find(s=>s.id===tgtScope)?.name || tgtScope));
+      renderScopeRight();
+      showToast(sDragItem.name + ' → ' + s.team[slotIndex].role + ' (' + s.team[slotIndex].alloc + ')');
     });
   });
+
+  // Extra drop zone
+  const extraDrop = document.getElementById('scopeExtraDrop');
+  if (extraDrop) {
+    extraDrop.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; extraDrop.classList.add('drag-over'); });
+    extraDrop.addEventListener('dragleave', () => extraDrop.classList.remove('drag-over'));
+    extraDrop.addEventListener('drop', e => {
+      e.preventDefault(); extraDrop.classList.remove('drag-over');
+      if (!sDragItem) return;
+      const allocStr = prompt('Allocation % for ' + sDragItem.name + ':', '20');
+      if (!allocStr) return;
+      const alloc = parseFloat(allocStr) || 20;
+      const roleStr = prompt('Role in this scope:', sDragItem.role || '');
+
+      if (!scopeAssignments[activeScope]) scopeAssignments[activeScope] = {};
+      if (!scopeAssignments[activeScope].extra) scopeAssignments[activeScope].extra = [];
+      scopeAssignments[activeScope].extra.push({
+        personId: sDragItem.id,
+        personName: sDragItem.name,
+        personRole: sDragItem.role || '',
+        scopeRole: roleStr || 'Unspecified',
+        alloc
+      });
+      saveScopeAssignments();
+      renderScopeRight();
+      showToast(sDragItem.name + ' added at ' + alloc + '%');
+    });
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1510,8 +1770,6 @@ document.addEventListener('keydown', e => {
   // Load scope assignments
   const scopeSnap = await db.ref('scopeAssignments').once('value');
   if (scopeSnap.val()) scopeAssignments = scopeSnap.val();
-  // Fix null arrays from Firebase
-  SCOPES_DATA.forEach(s => { if (!scopeAssignments[s.id]) scopeAssignments[s.id] = []; });
 
   loadSnapshots();
   renderSnapshotBar();
@@ -1525,21 +1783,23 @@ document.addEventListener('keydown', e => {
       data = fixTeamArrays(remote);
       render();
       // Re-render scopes if visible
-      if (document.getElementById('scopesView').classList.contains('active')) renderScopes();
+      if (document.getElementById('scopesView').classList.contains('active') && activeScope) renderScopeRight();
     }
   });
 
   // Real-time listener for scope assignments
   db.ref('scopeAssignments').on('value', snap => {
+    if (suppressRemoteUpdate) return;
     if (snap.val()) {
       scopeAssignments = snap.val();
-      SCOPES_DATA.forEach(s => { if (!scopeAssignments[s.id]) scopeAssignments[s.id] = []; });
-      if (document.getElementById('scopesView').classList.contains('active')) renderScopes();
+      if (document.getElementById('scopesView').classList.contains('active') && activeScope) {
+        renderScopeRight();
+      }
     }
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 4;
+  const APP_VERSION = 5;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val()) {
     await db.ref('appVersion').set(APP_VERSION);
