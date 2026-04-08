@@ -335,7 +335,6 @@
   .scope-left-header { padding:16px 18px 12px; border-bottom:1px solid var(--card-border); }
   .scope-left-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
   .scope-left-desc { font-size:11px; color:var(--text-dim); margin-top:4px; line-height:1.5; }
-  .scope-left-budget { font-size:10px; color:var(--amber); margin-top:4px; font-weight:600; }
   .scope-type-pill {
     display:inline-block; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
     padding:2px 6px; border-radius:10px; margin-left:8px;
@@ -1267,7 +1266,6 @@ const SCOPES_DATA = [
       'Always-on approach across brand & performance',
       'Upgraded shooting kit and improved content agility'
     ],
-    budget:'~GBP 716k/year (2025 reference)'
   },
   {
     id:'jotun', name:'Jotun', type:'project',
@@ -1369,7 +1367,6 @@ const SCOPES_DATA = [
       'World Cup Activation: creative big idea, social/content framework, influencer/drive-thru/delivery/in-store activations',
       'Store Opening Toolkit: Gold/Silver/Bronze tier templates (social, CRM, in-store, OOH, merchandise, UGC, Google Maps)'
     ],
-    budget:'Monthly invoicing. 10% mgmt fee on 3rd party. 12-month scope.'
   }
 ];
 
@@ -1461,13 +1458,14 @@ function renderScopeLeft() {
   const left = document.getElementById('scopeLeft');
   const col = s.type === 'retainer' ? '#10b981' : '#6366f1';
 
+  const hasTeam = s.team && s.team.length > 0;
+
   left.innerHTML = `
     <div class="scope-left-header">
       <div class="scope-left-title" style="color:${col}">${s.name}<span class="scope-type-pill ${s.type}">${s.type}</span></div>
       <div class="scope-left-desc">${s.description}</div>
-      ${s.budget ? '<div class="scope-left-budget">' + s.budget + '</div>' : ''}
     </div>
-    ${s.team.length ? `
+    ${hasTeam ? `
       <div class="section-label" style="padding:10px 18px 4px">Sold Resources</div>
       <div class="scope-role-section">
         ${s.team.map((t,i) => `
@@ -1478,13 +1476,18 @@ function renderScopeLeft() {
           </div>
         `).join('')}
       </div>
-    ` : '<div style="padding:18px;color:var(--text-dim);font-size:11px;">No team resources defined in scope</div>'}
-    <div class="scope-deliverables">
-      <div class="scope-del-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">Deliverables ▾</div>
-      <div style="display:none">
-        ${s.deliverables.map(d => '<div class="scope-del-item">• ' + d + '</div>').join('')}
+      <div class="scope-deliverables">
+        <div class="scope-del-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">Deliverables ▾</div>
+        <div style="display:none">
+          ${s.deliverables.map(d => '<div class="scope-del-item">• ' + d + '</div>').join('')}
+        </div>
       </div>
-    </div>`;
+    ` : `
+      <div class="section-label" style="padding:10px 18px 4px">Campaigns & Deliverables</div>
+      <div style="padding:4px 18px 14px;">
+        ${s.deliverables.map(d => '<div class="scope-del-item" style="padding:5px 0;font-size:11px;color:var(--text-mid);line-height:1.5;">• ' + d + '</div>').join('')}
+      </div>
+    `}`;
 }
 
 function renderScopeRight() {
