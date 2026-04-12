@@ -925,8 +925,12 @@ function showCtx(e, personId) {
   menu.style.left = e.clientX + 'px';
   menu.style.top = e.clientY + 'px';
   menu.classList.add('show');
-  const close = (e) => { if (e && menu.contains(e.target)) return; menu.classList.remove('show'); document.removeEventListener('mousedown', close); };
-  setTimeout(() => document.addEventListener('mousedown', close), 0);
+  const close = (e) => {
+    if (menu.contains(e.target)) return;
+    menu.classList.remove('show');
+    document.removeEventListener('click', close, true);
+  };
+  setTimeout(() => document.addEventListener('click', close, true), 10);
 }
 function hideCtx() { document.getElementById('ctxMenu').classList.remove('show'); }
 function toggleFL(personId) {
