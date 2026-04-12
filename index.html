@@ -503,6 +503,7 @@
   <span class="filter-pill" data-filter="Design" onclick="setFilter('Design')">Design</span>
   <span class="filter-pill" data-filter="CW" onclick="setFilter('CW')">CW</span>
   <span class="filter-pill" data-filter="AD" onclick="setFilter('AD')">AD</span>
+  <span class="filter-pill" data-filter="Account" onclick="setFilter('Account')">Account</span>
 </div>
 
 <!-- Snapshots -->
@@ -570,16 +571,20 @@
 // ═══════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════
-const ROLES = ['CCO','ECD','Senior CD','ACD','CD','Strat Director','Ass. Strat Director','Head of Production','Copy','Writer','Arabic Copy','Content Creator','Editor','Art','Senior Art','Design','Designer/AD','Motion','Motion/Editor','SuperMotion','Studio','SR CW','MID CW','JR CW','JR AD','CW','AD','Freelancer'];
+const ROLES = ['CCO','ECD','Senior CD','ACD','CD','Strat Director','Ass. Strat Director','Head of Production','Copy','Writer','Arabic Copy','Content Creator','Editor','Art','Senior Art','Design','Designer/AD','Motion','Motion/Editor','SuperMotion','Studio','SR CW','MID CW','JR CW','JR AD','CW','AD','Business Lead','Senior Account Director','Account Director','Account Manager','Senior Account Manager','Account Executive','Freelancer'];
 const TEAM_COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4','#8b5cf6','#ef4444','#f97316','#14b8a6','#a855f7'];
 const ROLE_COLORS = {
   'CCO':'#ef4444','ECD':'#f59e0b','ACD':'#a78bfa','Head of Production':'#14b8a6',
   'Senior CD':'#6366f1','Strat Director':'#10b981','Ass. Strat Director':'#10b981','CD':'#8b5cf6',
   'Copy':'#06b6d4','Writer':'#06b6d4','Arabic Copy':'#06b6d4','Content Creator':'#06b6d4','Editor':'#06b6d4','Art':'#ec4899','Senior Art':'#ec4899','Design':'#ec4899','Designer/AD':'#ec4899','Motion':'#f97316','Motion/Editor':'#f97316','SuperMotion':'#ea580c','Studio':'#84cc16',
-  'SR CW':'#06b6d4','MID CW':'#06b6d4','JR CW':'#38bdf8','JR AD':'#f472b6','CW':'#06b6d4','AD':'#ec4899','Freelancer':'#f59e0b'
+  'SR CW':'#06b6d4','MID CW':'#06b6d4','JR CW':'#38bdf8','JR AD':'#f472b6','CW':'#06b6d4','AD':'#ec4899',
+  'Business Lead':'#e879f9','Senior Account Director':'#e879f9','Account Director':'#e879f9','Account Manager':'#e879f9','Senior Account Manager':'#e879f9','Account Executive':'#d946ef',
+  'Head of Strategy':'#10b981','Strategy Director':'#10b981',
+  'Freelancer':'#f59e0b'
 };
 const COPY_ROLES = ['Copy','Writer','Arabic Copy','SR CW','MID CW','JR CW','CW'];
 const ART_ROLES = ['Art','Senior Art','Design','Designer/AD','JR AD','AD'];
+const ACCOUNT_ROLES = ['Business Lead','Senior Account Director','Account Director','Account Manager','Senior Account Manager','Account Executive'];
 
 // Firebase config
 const firebaseConfig = {
@@ -742,7 +747,8 @@ function applySearchAndFilter() {
       || (activeFilter === 'Art' && ART_ROLES.includes(role))
       || (activeFilter === 'CW' && role.includes('CW'))
       || (activeFilter === 'AD' && (role === 'AD' || role === 'JR AD'))
-      || (activeFilter === 'Strat Director' && (role === 'Strat Director' || role === 'Ass. Strat Director'));
+      || (activeFilter === 'Strat Director' && (role === 'Strat Director' || role === 'Ass. Strat Director' || role === 'Head of Strategy' || role === 'Strategy Director'))
+      || (activeFilter === 'Account' && ACCOUNT_ROLES.includes(role));
     el.classList.toggle('search-match', searchQuery && matchSearch);
     el.classList.toggle('filtered-out', !matchFilter);
   });
