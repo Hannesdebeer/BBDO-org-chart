@@ -914,20 +914,31 @@ function findPerson(id, cb) {
 // ═══════════════════════════════════════
 function showCtx(e, personId) {
   e.preventDefault();
+  e.stopPropagation();
   const menu = document.getElementById('ctxMenu');
-  menu.innerHTML = `
-    <div class="ctx-item" onclick="setAlloc('${personId}')">% Set Allocation</div>
-    <div class="ctx-item" onclick="duplicatePerson('${personId}')">⧉ Duplicate to Team</div>
-    <div class="ctx-item" onclick="moveToPool('${personId}')">↗ Move to Unassigned</div>
-    <div class="ctx-sep"></div>
-    <div class="ctx-item danger" onclick="removePerson('${personId}');hideCtx()">✕ Remove</div>
-  `;
+  const actions = [
+    {label:'% Set Allocation', fn:()=>setAlloc(personId)},
+    {label:'⧉ Duplicate to Team', fn:()=>duplicatePerson(personId)},
+    {label:'↗ Move to Unassigned', fn:()=>moveToPool(personId)},
+    {sep:true},
+    {label:'✕ Remove', fn:()=>{removePerson(personId);hideCtx()}, cls:'danger'},
+  ];
+  menu.innerHTML = actions.map(a => a.sep ? '<div class="ctx-sep"></div>' :
+    `<div class="ctx-item${a.cls?' '+a.cls:''}">${a.label}</div>`).join('');
+  // Bind click handlers directly via addEventListener
+  const items = menu.querySelectorAll('.ctx-item');
+  let idx = 0;
+  actions.forEach(a => {
+    if (a.sep) return;
+    items[idx].addEventListener('click', (ev) => { ev.stopPropagation(); hideCtx(); a.fn(); });
+    idx++;
+  });
   menu.style.left = e.clientX + 'px';
   menu.style.top = e.clientY + 'px';
   menu.classList.add('show');
-  const close = (e) => {
-    if (menu.contains(e.target)) return;
-    menu.classList.remove('show');
+  const close = (ev) => {
+    if (menu.contains(ev.target)) return;
+    hideCtx();
     document.removeEventListener('click', close, true);
   };
   setTimeout(() => document.addEventListener('click', close, true), 10);
