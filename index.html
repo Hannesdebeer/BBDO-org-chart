@@ -259,6 +259,36 @@
   }
   .toast.show { transform:translateX(-50%) translateY(0); }
 
+  /* Duplicate modal */
+  .dup-modal {
+    position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.6); display:none;
+    align-items:center; justify-content:center; font-family:'Inter',sans-serif;
+  }
+  .dup-modal.show { display:flex; }
+  .dup-modal-box {
+    background:#1a1a2e; border:1px solid var(--card-border); border-radius:14px;
+    padding:20px; min-width:280px; max-width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.6);
+  }
+  .dup-modal-title { font-size:14px; font-weight:700; margin-bottom:12px; color:var(--text); }
+  .dup-modal-list { max-height:250px; overflow-y:auto; margin-bottom:12px; }
+  .dup-modal-opt {
+    padding:7px 12px; border-radius:8px; font-size:12px; color:var(--text-mid); cursor:pointer;
+    transition:all .1s; display:flex; align-items:center; gap:8px;
+  }
+  .dup-modal-opt:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+  .dup-modal-opt .dm-color { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .dup-alloc-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .dup-alloc-row label { font-size:11px; color:var(--text-dim); }
+  .dup-alloc-row input {
+    width:70px; padding:5px 8px; border-radius:6px; border:1px solid var(--card-border);
+    background:var(--card-bg); color:var(--text); font-size:12px; font-family:inherit; outline:none; text-align:center;
+  }
+  .dup-alloc-row input:focus { border-color:var(--accent); }
+  .dup-modal-cancel {
+    font-size:11px; color:var(--text-dim); cursor:pointer; text-align:center; padding:6px;
+  }
+  .dup-modal-cancel:hover { color:var(--text); }
+
   /* Before/After overlay */
   .diff-badge {
     display:inline-block; font-size:8px; font-weight:700; padding:1px 5px; border-radius:3px;
@@ -528,6 +558,19 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Duplicate Modal -->
+<div class="dup-modal" id="dupModal" onclick="if(event.target===this)closeDupModal()">
+  <div class="dup-modal-box">
+    <div class="dup-modal-title" id="dupModalTitle">Duplicate to...</div>
+    <div class="dup-alloc-row">
+      <label>Allocation</label>
+      <input type="text" id="dupAllocInput" placeholder="e.g. 20%">
+    </div>
+    <div class="dup-modal-list" id="dupModalList"></div>
+    <div class="dup-modal-cancel" onclick="closeDupModal()">Cancel</div>
   </div>
 </div>
 
@@ -909,14 +952,14 @@ function toggleAnon(personId) {
   findPerson(personId, p => { p.anon = !p.anon; });
   render(); autoSave();
 }
+let _dupPersonId = null;
+
 function duplicatePerson(personId) {
   hideCtx();
-  // Find person first without prompt
+  // Find person
   let person = null;
-  const pool = data.pool || [];
-  const pi = pool.findIndex(p=>p.id===personId);
-  if (pi >= 0) { person = pool[pi]; }
-  else {
+  for (const p of (data.pool||[])) { if (p.id===personId) { person=p; break; } }
+  if (!person) {
     for (const t of (data.teams||[])) {
       for (const p of (t.leaders||[])) { if (p.id===personId) { person=p; break; } }
       if (person) break;
@@ -926,29 +969,55 @@ function duplicatePerson(personId) {
   }
   if (!person) { showToast('Person not found'); return; }
 
-  // Now prompt (outside callback)
-  const teamNames = data.teams.map((t,i) => (i+1) + '. ' + t.name);
-  const choice = prompt('Duplicate ' + person.name + ' to which team?\n0. Unassigned\n' + teamNames.join('\n') + '\n\nEnter number:');
-  if (choice === null) return;
-  const idx = parseInt(choice);
-  const allocStr = prompt('Allocation % (leave blank for none):', '');
-  const alloc = allocStr ? allocStr.replace(/[^0-9%]/g,'') : '';
-  const allocLabel = alloc ? (alloc.includes('%') ? alloc : alloc + '%') : '';
+  _dupPersonId = personId;
+  document.getElementById('dupModalTitle').textContent = 'Duplicate ' + person.name + ' to...';
+  document.getElementById('dupAllocInput').value = '';
+
+  // Build team list
+  let html = `<div class="dup-modal-opt" onclick="doDuplicate(-1)"><span class="dm-color" style="background:var(--text-dim)"></span>Unassigned</div>`;
+  data.teams.forEach((t, i) => {
+    html += `<div class="dup-modal-opt" onclick="doDuplicate(${i})"><span class="dm-color" style="background:${t.color}"></span>${t.name}</div>`;
+  });
+  document.getElementById('dupModalList').innerHTML = html;
+  document.getElementById('dupModal').classList.add('show');
+  document.getElementById('dupAllocInput').focus();
+}
+
+function doDuplicate(teamIdx) {
+  if (!_dupPersonId) return;
+  let person = null;
+  for (const p of (data.pool||[])) { if (p.id===_dupPersonId) { person=p; break; } }
+  if (!person) {
+    for (const t of (data.teams||[])) {
+      for (const p of (t.leaders||[])) { if (p.id===_dupPersonId) { person=p; break; } }
+      if (person) break;
+      for (const p of (t.members||[])) { if (p.id===_dupPersonId) { person=p; break; } }
+      if (person) break;
+    }
+  }
+  if (!person) { closeDupModal(); return; }
+
+  const allocRaw = document.getElementById('dupAllocInput').value.trim();
+  const allocLabel = allocRaw ? (allocRaw.includes('%') ? allocRaw : allocRaw + '%') : '';
 
   saveState();
   const clone = { ...JSON.parse(JSON.stringify(person)), id:uid() };
   if (allocLabel) clone.alloc = allocLabel;
 
-  if (idx === 0 || isNaN(idx)) {
+  if (teamIdx < 0) {
     data.pool.push(clone);
     showToast(person.name + ' → Unassigned' + (allocLabel ? ' (' + allocLabel + ')' : ''));
-  } else if (idx >= 1 && idx <= data.teams.length) {
-    data.teams[idx-1].members.push(clone);
-    showToast(person.name + ' → ' + data.teams[idx-1].name + (allocLabel ? ' (' + allocLabel + ')' : ''));
   } else {
-    return;
+    data.teams[teamIdx].members.push(clone);
+    showToast(person.name + ' → ' + data.teams[teamIdx].name + (allocLabel ? ' (' + allocLabel + ')' : ''));
   }
+  closeDupModal();
   render(); autoSave();
+}
+
+function closeDupModal() {
+  document.getElementById('dupModal').classList.remove('show');
+  _dupPersonId = null;
 }
 function setAlloc(personId) {
   hideCtx();
