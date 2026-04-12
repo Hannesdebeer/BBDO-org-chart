@@ -261,7 +261,7 @@
 
   /* Duplicate modal */
   .dup-modal {
-    position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.6); display:none;
+    position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.6); display:none;
     align-items:center; justify-content:center; font-family:'Inter',sans-serif;
   }
   .dup-modal.show { display:flex; }
@@ -558,19 +558,6 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- Duplicate Modal -->
-<div class="dup-modal" id="dupModal" onclick="if(event.target===this)closeDupModal()">
-  <div class="dup-modal-box">
-    <div class="dup-modal-title" id="dupModalTitle">Duplicate to...</div>
-    <div class="dup-alloc-row">
-      <label>Allocation</label>
-      <input type="text" id="dupAllocInput" placeholder="e.g. 20%">
-    </div>
-    <div class="dup-modal-list" id="dupModalList"></div>
-    <div class="dup-modal-cancel" onclick="closeDupModal()">Cancel</div>
   </div>
 </div>
 
@@ -2002,6 +1989,19 @@ document.addEventListener('keydown', e => {
 })();
 </script>
 </div><!-- /app-wrap -->
+
+<!-- Duplicate Modal (outside app-wrap so it's above password gate) -->
+<div class="dup-modal" id="dupModal" onclick="if(event.target===this)closeDupModal()">
+  <div class="dup-modal-box">
+    <div class="dup-modal-title" id="dupModalTitle">Duplicate to...</div>
+    <div class="dup-alloc-row">
+      <label>Allocation</label>
+      <input type="text" id="dupAllocInput" placeholder="e.g. 20%">
+    </div>
+    <div class="dup-modal-list" id="dupModalList"></div>
+    <div class="dup-modal-cancel" onclick="closeDupModal()">Cancel</div>
+  </div>
+</div>
 
 <script>
 // Password gate — hash check so password isn't plain text in source
