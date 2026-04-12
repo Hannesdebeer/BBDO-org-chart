@@ -924,6 +924,7 @@ function showCtx(e, personId) {
   e.stopPropagation();
   const menu = document.getElementById('ctxMenu');
   const actions = [
+    {label:'★ Toggle Star', fn:()=>toggleStar(personId)},
     {label:'% Set Allocation', fn:()=>setAlloc(personId)},
     {label:'⧉ Duplicate to Team', fn:()=>duplicatePerson(personId)},
     {label:'↗ Move to Unassigned', fn:()=>moveToPool(personId)},
@@ -1310,7 +1311,7 @@ function renderPerson(p, isLeader) {
         <div class="person-name" contenteditable="true" spellcheck="false"
           onblur="onNameEdit('${p.id}',this)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-          ondblclick="event.preventDefault();this.blur();toggleStar('${p.id}')">${p.name}</div>${diffBadge ? `<div style="display:inline">${diffBadge}</div>` : ''}
+          >${p.name}</div>${diffBadge ? `<div style="display:inline">${diffBadge}</div>` : ''}
         <div class="person-role" onclick="changeRole('${p.id}',this)">${p.role}</div>
       </div>
       ${p.alloc ? `<span class="alloc-badge" onclick="event.stopPropagation();setAlloc('${p.id}')" title="Click to edit allocation">${p.alloc}</span>` : ''}
