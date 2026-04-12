@@ -216,7 +216,8 @@
   .person-actions button:hover { background:rgba(255,255,255,0.12); color:var(--text); }
   .person-actions button.del:hover { background:rgba(239,68,68,0.15); color:var(--red); }
 
-  .alloc-badge { font-size:8px; color:var(--green); font-weight:700; flex-shrink:0; }
+  .alloc-badge { font-size:8px; color:var(--green); font-weight:700; flex-shrink:0; cursor:pointer; }
+  .alloc-badge:hover { color:#34d399; text-decoration:underline; text-decoration-style:dotted; }
   .q-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(239,68,68,0.12); color:#f87171; font-weight:700; flex-shrink:0; transition:opacity .15s; }
   .fl-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(245,158,11,0.12); color:#fbbf24; font-weight:700; flex-shrink:0; transition:opacity .15s; }
   .person:hover .fl-badge, .person:hover .q-badge { opacity:0; pointer-events:none; }
@@ -884,7 +885,8 @@ function showCtx(e, personId) {
   e.preventDefault();
   const menu = document.getElementById('ctxMenu');
   menu.innerHTML = `
-    <div class="ctx-item" onclick="duplicatePerson('${personId}')">⧉ Duplicate</div>
+    <div class="ctx-item" onclick="setAlloc('${personId}')">% Set Allocation</div>
+    <div class="ctx-item" onclick="duplicatePerson('${personId}')">⧉ Duplicate to Team</div>
     <div class="ctx-item" onclick="moveToPool('${personId}')">↗ Move to Unassigned</div>
     <div class="ctx-sep"></div>
     <div class="ctx-item danger" onclick="removePerson('${personId}');hideCtx()">✕ Remove</div>
@@ -907,12 +909,47 @@ function toggleAnon(personId) {
   render(); autoSave();
 }
 function duplicatePerson(personId) {
-  hideCtx(); saveState();
+  hideCtx();
   findPerson(personId, p => {
-    data.pool.push({ ...JSON.parse(JSON.stringify(p)), id:uid() });
+    // Build team options
+    const teamNames = data.teams.map((t,i) => (i+1) + '. ' + t.name);
+    const choice = prompt('Duplicate ' + p.name + ' to which team?\n0. Unassigned\n' + teamNames.join('\n') + '\n\nEnter number:');
+    if (choice === null) return;
+    const idx = parseInt(choice);
+    const allocStr = prompt('Allocation % (leave blank for none):', '');
+    const alloc = allocStr ? allocStr.replace(/[^0-9%]/g,'') : '';
+    const allocLabel = alloc ? (alloc.includes('%') ? alloc : alloc + '%') : '';
+
+    saveState();
+    const clone = { ...JSON.parse(JSON.stringify(p)), id:uid() };
+    if (allocLabel) clone.alloc = allocLabel;
+
+    if (idx === 0 || isNaN(idx)) {
+      data.pool.push(clone);
+      showToast(p.name + ' → Unassigned' + (allocLabel ? ' (' + allocLabel + ')' : ''));
+    } else if (idx >= 1 && idx <= data.teams.length) {
+      data.teams[idx-1].members.push(clone);
+      showToast(p.name + ' → ' + data.teams[idx-1].name + (allocLabel ? ' (' + allocLabel + ')' : ''));
+    } else {
+      return;
+    }
+    render(); autoSave();
   });
-  render(); autoSave();
-  showToast('Duplicated to Unassigned');
+}
+function setAlloc(personId) {
+  hideCtx();
+  findPerson(personId, p => {
+    const current = p.alloc || '';
+    const val = prompt('Allocation % for ' + p.name + ' (leave blank to clear):', current);
+    if (val === null) return;
+    saveState();
+    if (val.trim() === '') {
+      delete p.alloc;
+    } else {
+      p.alloc = val.includes('%') ? val : val + '%';
+    }
+    render(); autoSave();
+  });
 }
 function moveToPool(personId) {
   hideCtx(); saveState();
@@ -1145,7 +1182,7 @@ function renderPerson(p, isLeader) {
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${p.name}</div>${diffBadge ? `<div style="display:inline">${diffBadge}</div>` : ''}
         <div class="person-role" onclick="changeRole('${p.id}',this)">${p.role}</div>
       </div>
-      ${p.alloc ? `<span class="alloc-badge">${p.alloc}</span>` : ''}
+      ${p.alloc ? `<span class="alloc-badge" onclick="event.stopPropagation();setAlloc('${p.id}')" title="Click to edit allocation">${p.alloc}</span>` : ''}
       ${p.anon ? `<span class="q-badge">?</span>` : ''}
       ${p.freelancer ? `<span class="fl-badge">FL</span>` : ''}
       <div class="person-actions">
