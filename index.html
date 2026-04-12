@@ -588,11 +588,11 @@ function flashSaved() {
 
 function autoSave() {
   clearTimeout(saveTimeout);
+  suppressRemoteUpdate = true;
   saveTimeout = setTimeout(() => {
-    suppressRemoteUpdate = true;
     db.ref('orgchart').set(data).then(() => {
       flashSaved();
-      setTimeout(() => { suppressRemoteUpdate = false; }, 500);
+      setTimeout(() => { suppressRemoteUpdate = false; }, 1000);
     }).catch(() => { suppressRemoteUpdate = false; });
   }, 300);
 }
