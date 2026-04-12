@@ -1008,17 +1008,50 @@ function closeDupModal() {
 }
 function setAlloc(personId) {
   hideCtx();
-  findPerson(personId, p => {
-    const current = p.alloc || '';
-    const val = prompt('Allocation % for ' + p.name + ' (leave blank to clear):', current);
-    if (val === null) return;
-    saveState();
-    if (val.trim() === '') {
-      delete p.alloc;
-    } else {
-      p.alloc = val.includes('%') ? val : val + '%';
+  // Find person
+  let person = null;
+  for (const p of (data.pool||[])) { if (p.id===personId) { person=p; break; } }
+  if (!person) {
+    for (const t of (data.teams||[])) {
+      for (const p of (t.leaders||[])) { if (p.id===personId) { person=p; break; } }
+      if (person) break;
+      for (const p of (t.members||[])) { if (p.id===personId) { person=p; break; } }
+      if (person) break;
     }
+  }
+  if (!person) return;
+
+  // Show alloc modal
+  const modal = document.getElementById('dupModal');
+  document.getElementById('dupModalTitle').textContent = 'Set allocation for ' + person.name;
+  document.getElementById('dupAllocInput').value = person.alloc ? person.alloc.replace('%','') : '';
+  document.getElementById('dupModalList').innerHTML =
+    '<div class="dup-modal-opt" onclick="doSetAlloc(\'' + personId + '\')"><span class="dm-color" style="background:var(--green)"></span>Apply</div>' +
+    '<div class="dup-modal-opt" onclick="doClearAlloc(\'' + personId + '\')"><span class="dm-color" style="background:var(--red)"></span>Clear allocation</div>';
+  _dupPersonId = null; // not used for alloc
+  modal.classList.add('show');
+  document.getElementById('dupAllocInput').focus();
+}
+
+function doSetAlloc(personId) {
+  const val = document.getElementById('dupAllocInput').value.trim();
+  if (!val) { closeDupModal(); return; }
+  findPerson(personId, p => {
+    saveState();
+    p.alloc = val.includes('%') ? val : val + '%';
+    closeDupModal();
     render(); autoSave();
+    showToast(p.name + ' → ' + p.alloc);
+  });
+}
+
+function doClearAlloc(personId) {
+  findPerson(personId, p => {
+    saveState();
+    delete p.alloc;
+    closeDupModal();
+    render(); autoSave();
+    showToast(p.name + ' allocation cleared');
   });
 }
 function moveToPool(personId) {
@@ -1996,7 +2029,7 @@ document.addEventListener('keydown', e => {
     <div class="dup-modal-title" id="dupModalTitle">Duplicate to...</div>
     <div class="dup-alloc-row">
       <label>Allocation</label>
-      <input type="text" id="dupAllocInput" placeholder="e.g. 20%">
+      <input type="text" id="dupAllocInput" placeholder="e.g. 20%" onkeydown="if(event.key==='Enter'){const a=document.querySelector('#dupModalList .dup-modal-opt');if(a)a.click();}">
     </div>
     <div class="dup-modal-list" id="dupModalList"></div>
     <div class="dup-modal-cancel" onclick="closeDupModal()">Cancel</div>
