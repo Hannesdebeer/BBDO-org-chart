@@ -141,6 +141,12 @@
   .team-col:hover { border-color:rgba(255,255,255,0.1); }
   .team-col.highlight { box-shadow:0 0 0 2px var(--accent), 0 0 20px rgba(99,102,241,0.15); }
   .team-col.dim { opacity:0.25; }
+  .team-col.col-dragging { opacity:0.3; }
+  .team-col.col-drag-over-left { box-shadow:-3px 0 0 0 var(--accent); }
+  .team-col.col-drag-over-right { box-shadow:3px 0 0 0 var(--accent); }
+  .team-drag-handle { cursor:grab; padding:2px 4px; opacity:0.3; font-size:12px; user-select:none; }
+  .team-drag-handle:hover { opacity:0.7; }
+  .team-drag-handle:active { cursor:grabbing; }
 
   .team-header { padding:14px 14px 10px; border-bottom:1px solid var(--card-border); position:relative; }
   .team-top-bar { height:3px; position:absolute; top:0; left:0; right:0; }
@@ -1061,6 +1067,64 @@ function attachDrag() {
       render(); autoSave();
     });
   });
+
+  // Team column reorder via drag handle
+  let colDragId = null;
+  document.querySelectorAll('.team-drag-handle').forEach(handle => {
+    handle.addEventListener('dragstart', e => {
+      e.stopPropagation();
+      const col = handle.closest('.team-col');
+      colDragId = col.dataset.teamId;
+      col.classList.add('col-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', colDragId);
+      const ghost = document.getElementById('dragGhost');
+      ghost.textContent = data.teams.find(t=>t.id===colDragId)?.name || '';
+      ghost.style.display = 'block';
+      e.dataTransfer.setDragImage(ghost, 0, 0);
+    });
+    handle.addEventListener('dragend', () => {
+      colDragId = null;
+      document.querySelectorAll('.col-dragging,.col-drag-over-left,.col-drag-over-right').forEach(el => {
+        el.classList.remove('col-dragging','col-drag-over-left','col-drag-over-right');
+      });
+      document.getElementById('dragGhost').style.display = 'none';
+    });
+  });
+
+  document.querySelectorAll('.team-col').forEach(col => {
+    col.addEventListener('dragover', e => {
+      if (!colDragId) return;
+      if (col.dataset.teamId === colDragId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const rect = col.getBoundingClientRect();
+      const mid = rect.left + rect.width / 2;
+      const isLeft = e.clientX < mid;
+      col.classList.toggle('col-drag-over-left', isLeft);
+      col.classList.toggle('col-drag-over-right', !isLeft);
+    });
+    col.addEventListener('dragleave', () => {
+      col.classList.remove('col-drag-over-left','col-drag-over-right');
+    });
+    col.addEventListener('drop', e => {
+      e.preventDefault();
+      col.classList.remove('col-drag-over-left','col-drag-over-right');
+      if (!colDragId || col.dataset.teamId === colDragId) return;
+      saveState();
+      const fromIdx = data.teams.findIndex(t => t.id === colDragId);
+      const toTeamId = col.dataset.teamId;
+      let toIdx = data.teams.findIndex(t => t.id === toTeamId);
+      const rect = col.getBoundingClientRect();
+      const dropRight = e.clientX >= rect.left + rect.width / 2;
+      const moved = data.teams.splice(fromIdx, 1)[0];
+      toIdx = data.teams.findIndex(t => t.id === toTeamId);
+      if (dropRight) toIdx++;
+      data.teams.splice(toIdx, 0, moved);
+      colDragId = null;
+      render(); autoSave();
+    });
+  });
 }
 
 // ═══════════════════════════════════════
@@ -1106,6 +1170,7 @@ function renderTeam(team) {
               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${team.dedicated?'★ ':''}${team.name}</div>
             <div class="team-count">${s.total} people · ${s.clients} client${s.clients!==1?'s':''}</div>
           </div>
+          <span class="team-drag-handle" draggable="true" title="Drag to reorder">⠿</span>
           <button class="btn danger" style="padding:3px 7px;font-size:9px;" onclick="removeTeam('${team.id}')" title="Remove team">✕</button>
         </div>
       </div>
