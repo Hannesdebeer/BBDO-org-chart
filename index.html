@@ -220,7 +220,8 @@
   .alloc-badge:hover { color:#34d399; text-decoration:underline; text-decoration-style:dotted; }
   .q-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(239,68,68,0.12); color:#f87171; font-weight:700; flex-shrink:0; transition:opacity .15s; }
   .fl-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(245,158,11,0.12); color:#fbbf24; font-weight:700; flex-shrink:0; transition:opacity .15s; }
-  .person:hover .fl-badge, .person:hover .q-badge { opacity:0; pointer-events:none; }
+  .star-badge { font-size:8px; padding:1px 5px; border-radius:3px; background:rgba(99,102,241,0.12); color:#a5b4fc; font-weight:700; flex-shrink:0; transition:opacity .15s; }
+  .person:hover .fl-badge, .person:hover .q-badge, .person:hover .star-badge { opacity:0; pointer-events:none; }
 
   /* Client tags */
   .clients-section { padding:6px 14px 12px; border-top:1px solid var(--card-border); margin-top:4px; }
@@ -960,6 +961,11 @@ function toggleAnon(personId) {
   findPerson(personId, p => { p.anon = !p.anon; });
   render(); autoSave();
 }
+function toggleStar(personId) {
+  saveState();
+  findPerson(personId, p => { p.starred = !p.starred; });
+  render(); autoSave();
+}
 let _dupPersonId = null;
 
 function duplicatePerson(personId) {
@@ -1303,10 +1309,12 @@ function renderPerson(p, isLeader) {
       <div class="person-info">
         <div class="person-name" contenteditable="true" spellcheck="false"
           onblur="onNameEdit('${p.id}',this)"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${p.name}</div>${diffBadge ? `<div style="display:inline">${diffBadge}</div>` : ''}
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          ondblclick="event.preventDefault();this.blur();toggleStar('${p.id}')">${p.name}</div>${diffBadge ? `<div style="display:inline">${diffBadge}</div>` : ''}
         <div class="person-role" onclick="changeRole('${p.id}',this)">${p.role}</div>
       </div>
       ${p.alloc ? `<span class="alloc-badge" onclick="event.stopPropagation();setAlloc('${p.id}')" title="Click to edit allocation">${p.alloc}</span>` : ''}
+      ${p.starred ? `<span class="star-badge">★</span>` : ''}
       ${p.anon ? `<span class="q-badge">?</span>` : ''}
       ${p.freelancer ? `<span class="fl-badge">FL</span>` : ''}
       <div class="person-actions">
