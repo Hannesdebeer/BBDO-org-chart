@@ -870,11 +870,12 @@ function onTeamNameEdit(teamId, el) {
   autoSave();
 }
 function findPerson(id, cb) {
-  const pi = data.pool.findIndex(p=>p.id===id);
-  if (pi >= 0) { cb(data.pool[pi]); return; }
-  for (const t of data.teams) {
-    for (const p of t.leaders) { if (p.id===id) { cb(p); return; } }
-    for (const p of t.members) { if (p.id===id) { cb(p); return; } }
+  const pool = data.pool || [];
+  const pi = pool.findIndex(p=>p.id===id);
+  if (pi >= 0) { cb(pool[pi]); return; }
+  for (const t of (data.teams||[])) {
+    for (const p of (t.leaders||[])) { if (p.id===id) { cb(p); return; } }
+    for (const p of (t.members||[])) { if (p.id===id) { cb(p); return; } }
   }
 }
 
@@ -910,31 +911,44 @@ function toggleAnon(personId) {
 }
 function duplicatePerson(personId) {
   hideCtx();
-  findPerson(personId, p => {
-    // Build team options
-    const teamNames = data.teams.map((t,i) => (i+1) + '. ' + t.name);
-    const choice = prompt('Duplicate ' + p.name + ' to which team?\n0. Unassigned\n' + teamNames.join('\n') + '\n\nEnter number:');
-    if (choice === null) return;
-    const idx = parseInt(choice);
-    const allocStr = prompt('Allocation % (leave blank for none):', '');
-    const alloc = allocStr ? allocStr.replace(/[^0-9%]/g,'') : '';
-    const allocLabel = alloc ? (alloc.includes('%') ? alloc : alloc + '%') : '';
-
-    saveState();
-    const clone = { ...JSON.parse(JSON.stringify(p)), id:uid() };
-    if (allocLabel) clone.alloc = allocLabel;
-
-    if (idx === 0 || isNaN(idx)) {
-      data.pool.push(clone);
-      showToast(p.name + ' → Unassigned' + (allocLabel ? ' (' + allocLabel + ')' : ''));
-    } else if (idx >= 1 && idx <= data.teams.length) {
-      data.teams[idx-1].members.push(clone);
-      showToast(p.name + ' → ' + data.teams[idx-1].name + (allocLabel ? ' (' + allocLabel + ')' : ''));
-    } else {
-      return;
+  // Find person first without prompt
+  let person = null;
+  const pool = data.pool || [];
+  const pi = pool.findIndex(p=>p.id===personId);
+  if (pi >= 0) { person = pool[pi]; }
+  else {
+    for (const t of (data.teams||[])) {
+      for (const p of (t.leaders||[])) { if (p.id===personId) { person=p; break; } }
+      if (person) break;
+      for (const p of (t.members||[])) { if (p.id===personId) { person=p; break; } }
+      if (person) break;
     }
-    render(); autoSave();
-  });
+  }
+  if (!person) { showToast('Person not found'); return; }
+
+  // Now prompt (outside callback)
+  const teamNames = data.teams.map((t,i) => (i+1) + '. ' + t.name);
+  const choice = prompt('Duplicate ' + person.name + ' to which team?\n0. Unassigned\n' + teamNames.join('\n') + '\n\nEnter number:');
+  if (choice === null) return;
+  const idx = parseInt(choice);
+  const allocStr = prompt('Allocation % (leave blank for none):', '');
+  const alloc = allocStr ? allocStr.replace(/[^0-9%]/g,'') : '';
+  const allocLabel = alloc ? (alloc.includes('%') ? alloc : alloc + '%') : '';
+
+  saveState();
+  const clone = { ...JSON.parse(JSON.stringify(person)), id:uid() };
+  if (allocLabel) clone.alloc = allocLabel;
+
+  if (idx === 0 || isNaN(idx)) {
+    data.pool.push(clone);
+    showToast(person.name + ' → Unassigned' + (allocLabel ? ' (' + allocLabel + ')' : ''));
+  } else if (idx >= 1 && idx <= data.teams.length) {
+    data.teams[idx-1].members.push(clone);
+    showToast(person.name + ' → ' + data.teams[idx-1].name + (allocLabel ? ' (' + allocLabel + ')' : ''));
+  } else {
+    return;
+  }
+  render(); autoSave();
 }
 function setAlloc(personId) {
   hideCtx();
