@@ -925,7 +925,7 @@ function showCtx(e, personId) {
   menu.style.left = e.clientX + 'px';
   menu.style.top = e.clientY + 'px';
   menu.classList.add('show');
-  const close = () => { menu.classList.remove('show'); document.removeEventListener('mousedown', close); };
+  const close = (e) => { if (e && menu.contains(e.target)) return; menu.classList.remove('show'); document.removeEventListener('mousedown', close); };
   setTimeout(() => document.addEventListener('mousedown', close), 0);
 }
 function hideCtx() { document.getElementById('ctxMenu').classList.remove('show'); }
