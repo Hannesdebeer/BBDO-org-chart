@@ -494,17 +494,8 @@
 
 <!-- Filter bar -->
 <div class="filter-bar" id="filterBar">
-  <span class="filter-label">Filter</span>
+  <span class="filter-label">Teams</span>
   <span class="filter-pill active" data-filter="all" onclick="setFilter('all')">All</span>
-  <span class="filter-pill" data-filter="Senior CD" onclick="setFilter('Senior CD')">Senior CD</span>
-  <span class="filter-pill" data-filter="Strat Director" onclick="setFilter('Strat Director')">Strat Director</span>
-  <span class="filter-pill" data-filter="Creative Director" onclick="setFilter('Creative Director')">Creative Dir</span>
-  <span class="filter-pill" data-filter="Copy" onclick="setFilter('Copy')">Copy</span>
-  <span class="filter-pill" data-filter="Art" onclick="setFilter('Art')">Art</span>
-  <span class="filter-pill" data-filter="Design" onclick="setFilter('Design')">Design</span>
-  <span class="filter-pill" data-filter="CW" onclick="setFilter('CW')">CW</span>
-  <span class="filter-pill" data-filter="AD" onclick="setFilter('AD')">AD</span>
-  <span class="filter-pill" data-filter="Account" onclick="setFilter('Account')">Account</span>
 </div>
 
 <!-- Snapshots -->
@@ -737,21 +728,31 @@ function setFilter(f) {
   document.querySelectorAll('.filter-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === f));
   applySearchAndFilter();
 }
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  let html = '<span class="filter-label">Teams</span>';
+  html += '<span class="filter-pill' + (activeFilter==='all'?' active':'') + '" data-filter="all" onclick="setFilter(\'all\')">All</span>';
+  (data.teams||[]).forEach(t => {
+    const active = activeFilter === t.id ? ' active' : '';
+    html += `<span class="filter-pill${active}" data-filter="${t.id}" onclick="setFilter('${t.id}')" style="border-color:${t.color}30;${active?'background:'+t.color+';border-color:'+t.color:''}"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${t.color};margin-right:4px;"></span>${t.name}</span>`;
+  });
+  bar.innerHTML = html;
+}
+
 function applySearchAndFilter() {
-  // People
+  // Team-based filter: show/hide entire team columns
+  document.querySelectorAll('.team-col').forEach(col => {
+    const teamId = col.dataset.teamId;
+    const matchFilter = activeFilter === 'all' || activeFilter === teamId;
+    col.style.display = matchFilter ? '' : 'none';
+  });
+  // Search within people
   document.querySelectorAll('.person').forEach(el => {
     const name = (el.dataset.name||'').toLowerCase();
-    const role = (el.dataset.role||'');
-    const matchSearch = !searchQuery || name.includes(searchQuery) || role.toLowerCase().includes(searchQuery);
-    const matchFilter = activeFilter === 'all' || role === activeFilter
-      || (activeFilter === 'Copy' && COPY_ROLES.includes(role))
-      || (activeFilter === 'Art' && ART_ROLES.includes(role))
-      || (activeFilter === 'CW' && role.includes('CW'))
-      || (activeFilter === 'AD' && (role === 'AD' || role === 'JR AD'))
-      || (activeFilter === 'Strat Director' && (role === 'Strat Director' || role === 'Ass. Strat Director' || role === 'Head of Strategy' || role === 'Strategy Director'))
-      || (activeFilter === 'Account' && ACCOUNT_ROLES.includes(role));
+    const role = (el.dataset.role||'').toLowerCase();
+    const matchSearch = !searchQuery || name.includes(searchQuery) || role.includes(searchQuery);
     el.classList.toggle('search-match', searchQuery && matchSearch);
-    el.classList.toggle('filtered-out', !matchFilter);
+    el.classList.remove('filtered-out');
   });
   // Clients
   document.querySelectorAll('.client-tag').forEach(el => {
@@ -759,8 +760,9 @@ function applySearchAndFilter() {
     const match = !searchQuery || name.includes(searchQuery);
     el.classList.toggle('search-match', searchQuery && match);
   });
-  // Dim non-matching team columns
+  // Dim non-matching team columns on search
   document.querySelectorAll('.team-col').forEach(col => {
+    if (col.style.display === 'none') return;
     if (!searchQuery) { col.classList.remove('highlight','dim'); return; }
     const hasMatch = col.querySelector('.search-match');
     col.classList.toggle('highlight', !!hasMatch);
@@ -1387,6 +1389,7 @@ function render() {
   const board = document.getElementById('board');
   board.innerHTML = data.teams.map(t => renderTeam(t)).join('');
 
+  renderFilterBar();
   attachDrag();
   applySearchAndFilter();
 }
