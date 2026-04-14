@@ -2078,6 +2078,7 @@ function renderZeroPerson(p, isLeader) {
 
 function renderZeroTeam(team) {
   const total = (team.leaders||[]).length + (team.members||[]).length;
+  const clients = (team.clients||[]).length;
   return `
     <div class="team-col" data-team-id="${team.id}">
       <div class="team-header">
@@ -2087,7 +2088,7 @@ function renderZeroTeam(team) {
             <div class="team-name" style="color:${team.color}" contenteditable="true" spellcheck="false"
               onblur="onZeroTeamName('${team.id}',this)"
               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${team.name}</div>
-            <div class="team-count">${total} people</div>
+            <div class="team-count">${total} people · ${clients} client${clients!==1?'s':''}</div>
           </div>
           <span class="team-drag-handle" draggable="true" title="Drag to reorder">⠿</span>
           <button class="btn danger" style="padding:3px 7px;font-size:9px;" onclick="removeZeroTeam('${team.id}')" title="Remove team">✕</button>
@@ -2101,7 +2102,42 @@ function renderZeroTeam(team) {
       <div class="people-list" data-team="${team.id}" data-list="members">
         ${(team.members||[]).map(p => renderZeroPerson(p, false)).join('')}
       </div>
+
+      <div class="clients-section">
+        <div class="section-label" style="padding:0 0 6px">Retainers <span class="add-btn" onclick="addZeroClient('${team.id}','retainer')" title="Add retainer">+</span></div>
+        <div class="clients-list" data-team="${team.id}" data-client-type="retainer">
+          ${(team.clients||[]).filter(c=>c.type==='retainer').map(c => `
+            <div class="client-tag retainer" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+              ${c.name}<span class="ctx-del" onclick="removeZeroClient('${c.id}')">✕</span>
+            </div>`).join('')}
+        </div>
+        <div class="section-label" style="padding:6px 0 6px">Projects <span class="add-btn" onclick="addZeroClient('${team.id}','project')" title="Add project">+</span></div>
+        <div class="clients-list" data-team="${team.id}" data-client-type="project">
+          ${(team.clients||[]).filter(c=>c.type==='project').map(c => `
+            <div class="client-tag project" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+              ${c.name}<span class="ctx-del" onclick="removeZeroClient('${c.id}')">✕</span>
+            </div>`).join('')}
+        </div>
+      </div>
     </div>`;
+}
+
+function addZeroClient(teamId, type) {
+  const name = prompt((type==='project'?'Project':'Retainer') + ' name:');
+  if (!name) return;
+  saveState();
+  const team = zeroData.teams.find(t=>t.id===teamId);
+  if (team) {
+    if (!team.clients) team.clients = [];
+    team.clients.push({ id:uid(), name:name.toUpperCase(), type });
+  }
+  renderZero(); saveZero();
+}
+
+function removeZeroClient(clientId) {
+  saveState();
+  (zeroData.teams||[]).forEach(t => { t.clients = (t.clients||[]).filter(c=>c.id!==clientId); });
+  renderZero(); saveZero();
 }
 
 function renderZero() {
