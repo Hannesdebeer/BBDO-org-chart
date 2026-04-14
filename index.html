@@ -658,16 +658,29 @@ function saveSnapshots() {
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
+let zeroHistory = [];
 function saveState() {
-  history.push(JSON.parse(JSON.stringify(data)));
-  if (history.length > 60) history.shift();
+  if (activeTab === 'zero') {
+    zeroHistory.push(JSON.parse(JSON.stringify(zeroData)));
+    if (zeroHistory.length > 60) zeroHistory.shift();
+  } else {
+    history.push(JSON.parse(JSON.stringify(data)));
+    if (history.length > 60) history.shift();
+  }
   document.getElementById('undoBtn').disabled = false;
 }
 function undo() {
-  if (!history.length) return;
-  data = history.pop();
-  render(); autoSave();
-  document.getElementById('undoBtn').disabled = history.length === 0;
+  if (activeTab === 'zero') {
+    if (!zeroHistory.length) return;
+    zeroData = zeroHistory.pop();
+    renderZero(); saveZero();
+    document.getElementById('undoBtn').disabled = zeroHistory.length === 0;
+  } else {
+    if (!history.length) return;
+    data = history.pop();
+    render(); autoSave();
+    document.getElementById('undoBtn').disabled = history.length === 0;
+  }
   showToast('Undone');
 }
 function resetLayout() {
@@ -2012,6 +2025,7 @@ function addZeroTeam() {
 }
 
 function removeZeroTeam(teamId) {
+  saveState();
   const team = zeroData.teams.find(t=>t.id===teamId);
   if (team) {
     zeroData.pool.push(...(team.leaders||[]), ...(team.members||[]));
@@ -2024,6 +2038,7 @@ function removeZeroTeam(teamId) {
 function addZeroPerson(teamId, list) {
   const name = prompt('Person name:');
   if (!name) return;
+  saveState();
   if (teamId === '__zpool') {
     zeroData.pool.push({ id:uid(), name, role:'Art' });
   } else {
@@ -2119,6 +2134,7 @@ function onZeroNameEdit(personId, el) {
   const badges = el.querySelectorAll('.diff-badge'); badges.forEach(b=>b.remove());
   const newName = el.textContent.trim();
   if (!newName) { renderZero(); return; }
+  saveState();
   findZeroPerson(personId, p => { p.name = newName; });
   saveZero();
 }
@@ -2150,11 +2166,13 @@ function zeroChangeRole(personId, el) {
 }
 
 function zeroToggle(personId, prop) {
+  saveState();
   findZeroPerson(personId, p => { p[prop] = !p[prop]; });
   renderZero(); saveZero();
 }
 
 function zeroRemovePerson(personId) {
+  saveState();
   zeroData.pool = (zeroData.pool||[]).filter(p=>p.id!==personId);
   (zeroData.teams||[]).forEach(t => {
     t.leaders = (t.leaders||[]).filter(p=>p.id!==personId);
@@ -2164,6 +2182,7 @@ function zeroRemovePerson(personId) {
 }
 
 function zeroMoveToPool(personId) {
+  saveState();
   let person = null;
   (zeroData.teams||[]).forEach(t => {
     const li = (t.leaders||[]).findIndex(p=>p.id===personId);
@@ -2194,10 +2213,12 @@ function zeroSetAlloc(personId) {
 function doZeroSetAlloc(personId) {
   const val = document.getElementById('dupAllocInput').value.trim();
   if (!val) { closeDupModal(); return; }
+  saveState();
   findZeroPerson(personId, p => { p.alloc = val.includes('%') ? val : val + '%'; });
   closeDupModal(); renderZero(); saveZero();
 }
 function doZeroClearAlloc(personId) {
+  saveState();
   findZeroPerson(personId, p => { delete p.alloc; });
   closeDupModal(); renderZero(); saveZero();
 }
@@ -2223,6 +2244,7 @@ function doZeroDuplicate(teamIdx) {
   let person = null;
   findZeroPerson(_dupPersonId, p => { person = p; });
   if (!person) { closeDupModal(); return; }
+  saveState();
   const allocRaw = document.getElementById('dupAllocInput').value.trim();
   const allocLabel = allocRaw ? (allocRaw.includes('%') ? allocRaw : allocRaw + '%') : '';
   const clone = { ...JSON.parse(JSON.stringify(person)), id:uid() };
@@ -2310,6 +2332,7 @@ function attachZeroDrag() {
     zone.addEventListener('drop', e => {
       e.preventDefault(); zone.classList.remove('drag-over');
       if (!zDragItem) return;
+      saveState();
       const tgtTeam = zone.dataset.team;
       const tgtList = zone.dataset.list;
 
