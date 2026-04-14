@@ -340,8 +340,9 @@
   .team-col:nth-child(7){animation-delay:.24s} .team-col:nth-child(8){animation-delay:.28s}
 
   /* ── SCOPES VIEW ── */
-  .scopes-view, #zeroView { display:none; flex:1; overflow:hidden; flex-direction:column; }
-  .scopes-view.active, #zeroView.active { display:flex; }
+  .scopes-view { display:none; flex:1; overflow:hidden; flex-direction:column; }
+  .scopes-view.active { display:flex; }
+  #zeroView.active { display:flex !important; }
   .main.hidden { display:none; }
   .filter-bar.hidden, .snapshot-bar.hidden { display:none; }
 
@@ -486,7 +487,7 @@
   <button class="btn" onclick="saveSnapshot()">📌 Save Snapshot</button>
   <button class="btn" onclick="exportJSON()">↓ Export</button>
   <span id="saveIndicator" style="font-size:10px;font-weight:600;"></span>
-  <button class="btn primary" onclick="addTeam()">+ Team</button>
+  <button class="btn primary" id="addTeamBtn" onclick="activeTab==='zero'?addZeroTeam():addTeam()">+ Team</button>
   <div class="search-box">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="searchInput" placeholder="Search people or clients…" oninput="onSearch(this.value)">
@@ -556,25 +557,21 @@
 </div>
 
 <!-- Zero Base View -->
-<div class="scopes-view" id="zeroView">
-  <div class="scope-split">
-    <div class="pool" id="zeroPool" style="border-right:1px solid var(--card-border);">
-      <div class="pool-header">
-        <h3>People <span class="pool-count" id="zeroPoolCount"></span></h3>
-      </div>
-      <input class="pool-search" style="margin:6px 8px;padding:5px 8px;border-radius:6px;border:1px solid var(--card-border);background:var(--card-bg);color:var(--text);font-size:10px;font-family:inherit;outline:none;width:calc(100% - 16px);" placeholder="Search people..." oninput="zeroPoolFilter=this.value.toLowerCase();renderZero()">
-      <div class="pool-body">
-        <div class="people-list" data-team="__zpool" data-list="members" id="zeroPoolList"></div>
-      </div>
+<div class="main" id="zeroView" style="display:none;">
+  <div class="pool" id="zeroPool">
+    <div class="pool-header">
+      <h3>Removed <span class="pool-count" id="zeroPoolCount"></span></h3>
+      <button class="pool-toggle" onclick="document.getElementById('zeroPool').classList.toggle('collapsed')" title="Collapse">◀</button>
     </div>
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="padding:8px 16px;border-bottom:1px solid var(--card-border);display:flex;align-items:center;gap:8px;background:var(--bg2);">
-        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);">Zero Base</span>
-        <button class="btn primary" onclick="addZeroTeam()" style="margin-left:auto;">+ Team</button>
-      </div>
-      <div class="board" id="zeroBoard" style="flex:1;"></div>
+    <div class="pool-body">
+      <div class="pool-empty" id="zeroPoolEmpty">Drop people here to<br>remove them from<br>the structure</div>
+      <div class="people-list" data-team="__zpool" data-list="members" id="zeroPoolList"></div>
+    </div>
+    <div class="pool-add">
+      <button class="btn" style="width:100%;justify-content:center;" onclick="addZeroPerson('__zpool','members')">+ Add Person</button>
     </div>
   </div>
+  <div class="board" id="zeroBoard"></div>
 </div>
 
 <!-- Overlays -->
@@ -621,6 +618,7 @@ let snapshots = {};
 let activeFilter = 'all';
 let searchQuery = '';
 let showingDiff = false;
+let activeTab = 'org';
 
 // ═══════════════════════════════════════
 // AUTO-SAVE (localStorage — fully automatic)
@@ -1638,6 +1636,7 @@ let activeScope = null;
 let scopePoolFilter = '';
 
 function switchTab(tab) {
+  activeTab = tab;
   const orgEls = [document.getElementById('filterBar'), document.getElementById('snapshotBar'), document.getElementById('mainView')];
   const scopesView = document.getElementById('scopesView');
   const zeroView = document.getElementById('zeroView');
@@ -1997,7 +1996,13 @@ function attachScopeDrag() {
 // ZERO BASE
 // ═══════════════════════════════════════
 let zeroData = { pool: [], teams: [] };
-let zeroPoolFilter = '';
+
+function saveZero() {
+  suppressRemoteUpdate = true;
+  db.ref('zeroBase').set(zeroData).then(() => {
+    setTimeout(() => { suppressRemoteUpdate = false; }, 1000);
+  }).catch(() => { suppressRemoteUpdate = false; });
+}
 
 function addZeroTeam() {
   const name = prompt('New team name:');
@@ -2006,24 +2011,53 @@ function addZeroTeam() {
   renderZero(); saveZero();
 }
 
-function saveZero() {
-  db.ref('zeroBase').set(zeroData);
+function removeZeroTeam(teamId) {
+  const team = zeroData.teams.find(t=>t.id===teamId);
+  if (team) {
+    zeroData.pool.push(...(team.leaders||[]), ...(team.members||[]));
+    zeroData.teams = zeroData.teams.filter(t=>t.id!==teamId);
+    renderZero(); saveZero();
+    showToast('Removed ' + team.name + ' — people moved to Removed');
+  }
 }
 
-function renderZeroPerson(p) {
+function addZeroPerson(teamId, list) {
+  const name = prompt('Person name:');
+  if (!name) return;
+  if (teamId === '__zpool') {
+    zeroData.pool.push({ id:uid(), name, role:'Art' });
+  } else {
+    const team = zeroData.teams.find(t=>t.id===teamId);
+    if (!team) return;
+    if (!team[list]) team[list] = [];
+    team[list].push({ id:uid(), name, role:'Art' });
+  }
+  renderZero(); saveZero();
+}
+
+// Zero base uses the same person card rendering as org chart
+function renderZeroPerson(p, isLeader) {
   const color = rc(p.role);
   return `
-    <div class="person" draggable="true" data-person-id="${p.id}" data-name="${p.name}" data-role="${p.role}">
+    <div class="person ${isLeader?'leader':''}" draggable="true" data-person-id="${p.id}" data-name="${p.name}" data-role="${p.role}" data-zero="1">
       <div class="person-avatar" style="background:${color}18;color:${color};border:1px solid ${color}25;">
         ${getInitials(p.name)}
       </div>
       <div class="person-info">
-        <div class="person-name" style="font-size:11px;">${p.name}</div>
-        <div class="person-role">${p.role||''}</div>
+        <div class="person-name" contenteditable="true" spellcheck="false"
+          onblur="onZeroNameEdit('${p.id}',this)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${p.name}</div>
+        <div class="person-role" onclick="zeroChangeRole('${p.id}',this)">${p.role}</div>
       </div>
-      ${p.alloc ? '<span class="alloc-badge">'+p.alloc+'</span>' : ''}
+      ${p.alloc ? `<span class="alloc-badge" onclick="event.stopPropagation();zeroSetAlloc('${p.id}')" title="Click to edit allocation">${p.alloc}</span>` : ''}
       ${p.starred ? '<span class="star-badge">★</span>' : ''}
+      ${p.anon ? '<span class="q-badge">?</span>' : ''}
       ${p.freelancer ? '<span class="fl-badge">FL</span>' : ''}
+      <div class="person-actions">
+        <button title="Toggle Freelancer" onclick="event.stopPropagation();zeroToggle('${p.id}','freelancer')" style="${p.freelancer?'color:#fbbf24;':''}">FL</button>
+        <button title="Duplicate" onclick="event.stopPropagation();zeroDuplicate('${p.id}')">⧉</button>
+        <button class="del" title="Remove" onclick="event.stopPropagation();zeroRemovePerson('${p.id}')">✕</button>
+      </div>
     </div>`;
 }
 
@@ -2040,39 +2074,53 @@ function renderZeroTeam(team) {
               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${team.name}</div>
             <div class="team-count">${total} people</div>
           </div>
+          <span class="team-drag-handle" draggable="true" title="Drag to reorder">⠿</span>
           <button class="btn danger" style="padding:3px 7px;font-size:9px;" onclick="removeZeroTeam('${team.id}')" title="Remove team">✕</button>
         </div>
       </div>
       <div class="section-label">Leadership <span class="add-btn" onclick="addZeroPerson('${team.id}','leaders')" title="Add">+</span></div>
-      <div class="people-list" data-team="${team.id}" data-list="leaders" style="min-height:32px;padding:3px 6px;margin:0 6px;">
-        ${(team.leaders||[]).map(p => renderZeroPerson(p)).join('')}
+      <div class="people-list" data-team="${team.id}" data-list="leaders">
+        ${(team.leaders||[]).map(p => renderZeroPerson(p, true)).join('')}
       </div>
       <div class="section-label">Team</div>
-      <div class="people-list" data-team="${team.id}" data-list="members" style="min-height:32px;padding:3px 6px;margin:0 6px;">
-        ${(team.members||[]).map(p => renderZeroPerson(p)).join('')}
+      <div class="people-list" data-team="${team.id}" data-list="members">
+        ${(team.members||[]).map(p => renderZeroPerson(p, false)).join('')}
       </div>
     </div>`;
 }
 
 function renderZero() {
-  // Pool: all people from org chart
-  const allPeople = [...(data.pool||[])];
-  (data.teams||[]).forEach(t => { allPeople.push(...(t.leaders||[]), ...(t.members||[])); });
-
-  const filtered = zeroPoolFilter
-    ? allPeople.filter(p => p.name.toLowerCase().includes(zeroPoolFilter) || (p.role||'').toLowerCase().includes(zeroPoolFilter))
-    : allPeople;
-
+  // Pool: removed people
   const poolList = document.getElementById('zeroPoolList');
+  const poolEmpty = document.getElementById('zeroPoolEmpty');
   const poolCount = document.getElementById('zeroPoolCount');
-  poolCount.textContent = '(' + allPeople.length + ')';
-  poolList.innerHTML = filtered.map(p => renderZeroPerson(p)).join('');
+  poolList.innerHTML = (zeroData.pool||[]).map(p => renderZeroPerson(p, false)).join('');
+  poolEmpty.style.display = (zeroData.pool||[]).length ? 'none' : 'block';
+  poolCount.textContent = (zeroData.pool||[]).length ? '(' + zeroData.pool.length + ')' : '';
 
   // Board
   const board = document.getElementById('zeroBoard');
   board.innerHTML = (zeroData.teams||[]).map(t => renderZeroTeam(t)).join('');
 
   attachZeroDrag();
+}
+
+// Helper: find person in zeroData
+function findZeroPerson(id, cb) {
+  const pi = (zeroData.pool||[]).findIndex(p=>p.id===id);
+  if (pi >= 0) { cb(zeroData.pool[pi]); return; }
+  for (const t of (zeroData.teams||[])) {
+    for (const p of (t.leaders||[])) { if (p.id===id) { cb(p); return; } }
+    for (const p of (t.members||[])) { if (p.id===id) { cb(p); return; } }
+  }
+}
+
+function onZeroNameEdit(personId, el) {
+  const badges = el.querySelectorAll('.diff-badge'); badges.forEach(b=>b.remove());
+  const newName = el.textContent.trim();
+  if (!newName) { renderZero(); return; }
+  findZeroPerson(personId, p => { p.name = newName; });
+  saveZero();
 }
 
 function onZeroTeamName(teamId, el) {
@@ -2082,19 +2130,142 @@ function onZeroTeamName(teamId, el) {
   if (team) { team.name = newName; saveZero(); }
 }
 
-function removeZeroTeam(teamId) {
-  zeroData.teams = zeroData.teams.filter(t=>t.id!==teamId);
+function zeroChangeRole(personId, el) {
+  const rect = el.getBoundingClientRect();
+  const dd = document.createElement('div');
+  dd.className = 'role-dropdown';
+  dd.style.left = rect.left + 'px';
+  dd.style.top = (rect.bottom + 2) + 'px';
+  dd.innerHTML = ROLES.map(r => `<div class="role-opt" data-role="${r}">${r}</div>`).join('');
+  document.body.appendChild(dd);
+  dd.addEventListener('click', e => {
+    const opt = e.target.closest('.role-opt');
+    if (!opt) return;
+    findZeroPerson(personId, p => { p.role = opt.dataset.role; });
+    dd.remove();
+    renderZero(); saveZero();
+  });
+  const close = (e) => { if (!dd.contains(e.target)) { dd.remove(); document.removeEventListener('mousedown', close); } };
+  setTimeout(() => document.addEventListener('mousedown', close), 0);
+}
+
+function zeroToggle(personId, prop) {
+  findZeroPerson(personId, p => { p[prop] = !p[prop]; });
   renderZero(); saveZero();
 }
 
-function addZeroPerson(teamId, list) {
-  const name = prompt('Person name:');
-  if (!name) return;
-  const team = zeroData.teams.find(t=>t.id===teamId);
-  if (!team) return;
-  if (!team[list]) team[list] = [];
-  team[list].push({ id:uid(), name, role:'Art' });
+function zeroRemovePerson(personId) {
+  zeroData.pool = (zeroData.pool||[]).filter(p=>p.id!==personId);
+  (zeroData.teams||[]).forEach(t => {
+    t.leaders = (t.leaders||[]).filter(p=>p.id!==personId);
+    t.members = (t.members||[]).filter(p=>p.id!==personId);
+  });
   renderZero(); saveZero();
+}
+
+function zeroMoveToPool(personId) {
+  let person = null;
+  (zeroData.teams||[]).forEach(t => {
+    const li = (t.leaders||[]).findIndex(p=>p.id===personId);
+    if (li>=0) { person = t.leaders.splice(li,1)[0]; }
+    const mi = (t.members||[]).findIndex(p=>p.id===personId);
+    if (mi>=0) { person = t.members.splice(mi,1)[0]; }
+  });
+  if (person) zeroData.pool.push(person);
+  renderZero(); saveZero();
+  showToast('Moved to Removed');
+}
+
+function zeroSetAlloc(personId) {
+  hideCtx();
+  let person = null;
+  findZeroPerson(personId, p => { person = p; });
+  if (!person) return;
+  const modal = document.getElementById('dupModal');
+  document.getElementById('dupModalTitle').textContent = 'Set allocation for ' + person.name;
+  document.getElementById('dupAllocInput').value = person.alloc ? person.alloc.replace('%','') : '';
+  document.getElementById('dupModalList').innerHTML =
+    '<div class="dup-modal-opt" onclick="doZeroSetAlloc(\'' + personId + '\')"><span class="dm-color" style="background:var(--green)"></span>Apply</div>' +
+    '<div class="dup-modal-opt" onclick="doZeroClearAlloc(\'' + personId + '\')"><span class="dm-color" style="background:var(--red)"></span>Clear allocation</div>';
+  _dupPersonId = null;
+  modal.classList.add('show');
+  document.getElementById('dupAllocInput').focus();
+}
+function doZeroSetAlloc(personId) {
+  const val = document.getElementById('dupAllocInput').value.trim();
+  if (!val) { closeDupModal(); return; }
+  findZeroPerson(personId, p => { p.alloc = val.includes('%') ? val : val + '%'; });
+  closeDupModal(); renderZero(); saveZero();
+}
+function doZeroClearAlloc(personId) {
+  findZeroPerson(personId, p => { delete p.alloc; });
+  closeDupModal(); renderZero(); saveZero();
+}
+
+function zeroDuplicate(personId) {
+  hideCtx();
+  let person = null;
+  findZeroPerson(personId, p => { person = p; });
+  if (!person) return;
+  _dupPersonId = personId;
+  document.getElementById('dupModalTitle').textContent = 'Duplicate ' + person.name + ' to...';
+  document.getElementById('dupAllocInput').value = '';
+  let html = `<div class="dup-modal-opt" onclick="doZeroDuplicate(-1)"><span class="dm-color" style="background:var(--text-dim)"></span>Removed Pool</div>`;
+  zeroData.teams.forEach((t, i) => {
+    html += `<div class="dup-modal-opt" onclick="doZeroDuplicate(${i})"><span class="dm-color" style="background:${t.color}"></span>${t.name}</div>`;
+  });
+  document.getElementById('dupModalList').innerHTML = html;
+  document.getElementById('dupModal').classList.add('show');
+  document.getElementById('dupAllocInput').focus();
+}
+function doZeroDuplicate(teamIdx) {
+  if (!_dupPersonId) return;
+  let person = null;
+  findZeroPerson(_dupPersonId, p => { person = p; });
+  if (!person) { closeDupModal(); return; }
+  const allocRaw = document.getElementById('dupAllocInput').value.trim();
+  const allocLabel = allocRaw ? (allocRaw.includes('%') ? allocRaw : allocRaw + '%') : '';
+  const clone = { ...JSON.parse(JSON.stringify(person)), id:uid() };
+  if (allocLabel) clone.alloc = allocLabel;
+  if (teamIdx < 0) {
+    zeroData.pool.push(clone);
+  } else {
+    zeroData.teams[teamIdx].members.push(clone);
+  }
+  closeDupModal(); renderZero(); saveZero();
+  showToast(person.name + ' duplicated');
+}
+
+function showZeroCtx(e, personId) {
+  e.preventDefault();
+  e.stopPropagation();
+  const menu = document.getElementById('ctxMenu');
+  const actions = [
+    {label:'★ Toggle Star', fn:()=>{zeroToggle(personId,'starred')}},
+    {label:'% Set Allocation', fn:()=>zeroSetAlloc(personId)},
+    {label:'⧉ Duplicate to Team', fn:()=>zeroDuplicate(personId)},
+    {label:'↗ Move to Removed', fn:()=>zeroMoveToPool(personId)},
+    {sep:true},
+    {label:'✕ Remove', fn:()=>{zeroRemovePerson(personId);hideCtx()}, cls:'danger'},
+  ];
+  menu.innerHTML = actions.map(a => a.sep ? '<div class="ctx-sep"></div>' :
+    `<div class="ctx-item${a.cls?' '+a.cls:''}">${a.label}</div>`).join('');
+  const items = menu.querySelectorAll('.ctx-item');
+  let idx = 0;
+  actions.forEach(a => {
+    if (a.sep) return;
+    items[idx].addEventListener('click', (ev) => { ev.stopPropagation(); hideCtx(); a.fn(); });
+    idx++;
+  });
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('show');
+  const close = (ev) => {
+    if (menu.contains(ev.target)) return;
+    hideCtx();
+    document.removeEventListener('click', close, true);
+  };
+  setTimeout(() => document.addEventListener('click', close, true), 10);
 }
 
 function attachZeroDrag() {
@@ -2107,14 +2278,10 @@ function attachZeroDrag() {
       zDragSource = listEl ? listEl.dataset.team : null;
       zDragList = listEl ? listEl.dataset.list : null;
 
+      // Find in zeroData
       if (zDragSource === '__zpool') {
-        // From pool — clone from org chart data
-        const allPeople = [...(data.pool||[])];
-        (data.teams||[]).forEach(t => { allPeople.push(...(t.leaders||[]), ...(t.members||[])); });
-        const found = allPeople.find(p=>p.id===pid);
-        if (found) zDragItem = {...JSON.parse(JSON.stringify(found)), id:uid()};
+        zDragItem = (zeroData.pool||[]).find(p=>p.id===pid);
       } else {
-        // From a zero base team — move it
         const team = zeroData.teams.find(t=>t.id===zDragSource);
         if (team) zDragItem = (team[zDragList]||[]).find(p=>p.id===pid);
       }
@@ -2133,6 +2300,8 @@ function attachZeroDrag() {
       document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
       zDragItem = null; zDragSource = null; zDragList = null;
     });
+    // Context menu
+    el.addEventListener('contextmenu', e => showZeroCtx(e, el.dataset.personId));
   });
 
   document.querySelectorAll('#zeroView .people-list').forEach(zone => {
@@ -2144,8 +2313,10 @@ function attachZeroDrag() {
       const tgtTeam = zone.dataset.team;
       const tgtList = zone.dataset.list;
 
-      // Remove from source zero team (not from pool — pool is read-only reference)
-      if (zDragSource && zDragSource !== '__zpool') {
+      // Remove from source
+      if (zDragSource === '__zpool') {
+        zeroData.pool = (zeroData.pool||[]).filter(p=>p.id!==zDragItem.id);
+      } else {
         const srcTeam = zeroData.teams.find(t=>t.id===zDragSource);
         if (srcTeam && srcTeam[zDragList]) {
           srcTeam[zDragList] = srcTeam[zDragList].filter(p=>p.id!==zDragItem.id);
@@ -2153,19 +2324,65 @@ function attachZeroDrag() {
       }
 
       // Add to target
-      if (tgtTeam !== '__zpool') {
+      if (tgtTeam === '__zpool') {
+        zeroData.pool.push(zDragItem);
+      } else {
         const tgt = zeroData.teams.find(t=>t.id===tgtTeam);
         if (tgt) {
           if (!tgt[tgtList]) tgt[tgtList] = [];
-          if (!tgt[tgtList].find(p=>p.id===zDragItem.id)) {
-            tgt[tgtList].push(zDragItem);
-          }
+          tgt[tgtList].push(zDragItem);
         }
       }
 
       renderZero(); saveZero();
-      const tgtName = tgtTeam === '__zpool' ? 'Pool' : (zeroData.teams.find(t=>t.id===tgtTeam)?.name || tgtTeam);
+      const tgtName = tgtTeam === '__zpool' ? 'Removed' : (zeroData.teams.find(t=>t.id===tgtTeam)?.name || tgtTeam);
       showToast(zDragItem.name + ' → ' + tgtName);
+    });
+  });
+
+  // Team column reorder
+  let zColDragId = null;
+  document.querySelectorAll('#zeroView .team-drag-handle').forEach(handle => {
+    handle.addEventListener('dragstart', e => {
+      e.stopPropagation();
+      const col = handle.closest('.team-col');
+      zColDragId = col.dataset.teamId;
+      col.classList.add('col-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', zColDragId);
+    });
+    handle.addEventListener('dragend', () => {
+      zColDragId = null;
+      document.querySelectorAll('.col-dragging,.col-drag-over-left,.col-drag-over-right').forEach(el => {
+        el.classList.remove('col-dragging','col-drag-over-left','col-drag-over-right');
+      });
+    });
+  });
+  document.querySelectorAll('#zeroView .team-col').forEach(col => {
+    col.addEventListener('dragover', e => {
+      if (!zColDragId) return;
+      if (col.dataset.teamId === zColDragId) return;
+      e.preventDefault();
+      const rect = col.getBoundingClientRect();
+      const isLeft = e.clientX < rect.left + rect.width / 2;
+      col.classList.toggle('col-drag-over-left', isLeft);
+      col.classList.toggle('col-drag-over-right', !isLeft);
+    });
+    col.addEventListener('dragleave', () => col.classList.remove('col-drag-over-left','col-drag-over-right'));
+    col.addEventListener('drop', e => {
+      e.preventDefault();
+      col.classList.remove('col-drag-over-left','col-drag-over-right');
+      if (!zColDragId || col.dataset.teamId === zColDragId) return;
+      const fromIdx = zeroData.teams.findIndex(t=>t.id===zColDragId);
+      const toTeamId = col.dataset.teamId;
+      const rect = col.getBoundingClientRect();
+      const dropRight = e.clientX >= rect.left + rect.width / 2;
+      const moved = zeroData.teams.splice(fromIdx, 1)[0];
+      let toIdx = zeroData.teams.findIndex(t=>t.id===toTeamId);
+      if (dropRight) toIdx++;
+      zeroData.teams.splice(toIdx, 0, moved);
+      zColDragId = null;
+      renderZero(); saveZero();
     });
   });
 }
