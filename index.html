@@ -2582,7 +2582,7 @@ document.addEventListener('keydown', e => {
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 6;
+  const APP_VERSION = 7;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val()) {
     await db.ref('appVersion').set(APP_VERSION);
