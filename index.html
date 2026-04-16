@@ -16,6 +16,18 @@
   .pw-gate input::placeholder{color:#55556b;}
   .pw-gate .pw-error{color:#ef4444;font-size:11px;margin-top:8px;opacity:0;}
   .pw-gate .pw-error.show{opacity:1;}
+
+  /* Zero base password gate — modal overlay */
+  .zero-pw-gate{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;flex-direction:column;font-family:'Inter',sans-serif;backdrop-filter:blur(8px);}
+  .zero-pw-gate.show{display:flex;}
+  .zero-pw-gate h1{color:#e8e8ed;font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:-0.5px;}
+  .zero-pw-gate input{width:260px;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#e8e8ed;font-size:14px;font-family:inherit;outline:none;text-align:center;}
+  .zero-pw-gate input:focus{border-color:#6366f1;}
+  .zero-pw-gate input::placeholder{color:#55556b;}
+  .zero-pw-gate .pw-error{color:#ef4444;font-size:11px;margin-top:8px;opacity:0;}
+  .zero-pw-gate .pw-error.show{opacity:1;}
+  .zero-pw-gate .pw-cancel{color:#55556b;font-size:11px;margin-top:14px;cursor:pointer;}
+  .zero-pw-gate .pw-cancel:hover{color:#e8e8ed;}
   .app-wrap{display:none;}
   .app-wrap.unlocked{display:contents;}
 </style>
@@ -1649,6 +1661,12 @@ let activeScope = null;
 let scopePoolFilter = '';
 
 function switchTab(tab) {
+  // Gate zero base behind its own password
+  if (tab === 'zero' && sessionStorage.getItem('bbdo_zero_auth') !== '1') {
+    document.getElementById('zeroPwGate').classList.add('show');
+    setTimeout(() => document.getElementById('zeroPwInput').focus(), 50);
+    return;
+  }
   activeTab = tab;
   const orgEls = [document.getElementById('filterBar'), document.getElementById('snapshotBar'), document.getElementById('mainView')];
   const scopesView = document.getElementById('scopesView');
@@ -1674,6 +1692,27 @@ function switchTab(tab) {
     orgEls.forEach(el => el.classList.remove('hidden'));
     document.getElementById('tabOrg').classList.add('active-tab');
   }
+}
+
+async function checkZeroPw() {
+  const val = document.getElementById('zeroPwInput').value;
+  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+  if (hash === '6a32a2fbdcfc5f6b0738e412231a78b41170d7aada2b3b099d232dcbbd1262b2') {
+    sessionStorage.setItem('bbdo_zero_auth','1');
+    document.getElementById('zeroPwGate').classList.remove('show');
+    document.getElementById('zeroPwInput').value = '';
+    document.getElementById('zeroPwError').classList.remove('show');
+    switchTab('zero');
+  } else {
+    document.getElementById('zeroPwError').classList.add('show');
+    document.getElementById('zeroPwInput').value = '';
+  }
+}
+
+function closeZeroPwGate() {
+  document.getElementById('zeroPwGate').classList.remove('show');
+  document.getElementById('zeroPwInput').value = '';
+  document.getElementById('zeroPwError').classList.remove('show');
 }
 
 // Calculate total allocated % for a person across ALL scopes
@@ -2558,6 +2597,14 @@ document.addEventListener('keydown', e => {
 })();
 </script>
 </div><!-- /app-wrap -->
+
+<!-- Zero Base Password Gate (outside app-wrap) -->
+<div class="zero-pw-gate" id="zeroPwGate">
+  <h1>Zero Base — Restricted</h1>
+  <input type="password" id="zeroPwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkZeroPw();if(event.key==='Escape')closeZeroPwGate()">
+  <div class="pw-error" id="zeroPwError">Wrong password</div>
+  <div class="pw-cancel" onclick="closeZeroPwGate()">Cancel</div>
+</div>
 
 <!-- Duplicate Modal (outside app-wrap so it's above password gate) -->
 <div class="dup-modal" id="dupModal" onclick="if(event.target===this)closeDupModal()">
