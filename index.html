@@ -2146,14 +2146,14 @@ function renderZeroTeam(team) {
         <div class="section-label" style="padding:0 0 6px">Retainers <span class="add-btn" onclick="addZeroClient('${team.id}','retainer')" title="Add retainer">+</span></div>
         <div class="clients-list" data-team="${team.id}" data-client-type="retainer">
           ${(team.clients||[]).filter(c=>c.type==='retainer').map(c => `
-            <div class="client-tag retainer" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+            <div class="client-tag retainer" draggable="true" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
               ${c.name}<span class="ctx-del" onclick="removeZeroClient('${c.id}')">✕</span>
             </div>`).join('')}
         </div>
         <div class="section-label" style="padding:6px 0 6px">Projects <span class="add-btn" onclick="addZeroClient('${team.id}','project')" title="Add project">+</span></div>
         <div class="clients-list" data-team="${team.id}" data-client-type="project">
           ${(team.clients||[]).filter(c=>c.type==='project').map(c => `
-            <div class="client-tag project" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
+            <div class="client-tag project" draggable="true" data-client-id="${c.id}" data-team="${team.id}" data-name="${c.name}">
               ${c.name}<span class="ctx-del" onclick="removeZeroClient('${c.id}')">✕</span>
             </div>`).join('')}
         </div>
@@ -2366,10 +2366,11 @@ function showZeroCtx(e, personId) {
 }
 
 function attachZeroDrag() {
-  let zDragItem = null, zDragSource = null, zDragList = null;
+  let zDragType = null, zDragItem = null, zDragSource = null, zDragList = null;
 
   document.querySelectorAll('#zeroView .person[draggable]').forEach(el => {
     el.addEventListener('dragstart', e => {
+      zDragType = 'person';
       const pid = el.dataset.personId;
       const listEl = el.closest('.people-list');
       zDragSource = listEl ? listEl.dataset.team : null;
@@ -2395,18 +2396,36 @@ function attachZeroDrag() {
       el.classList.remove('dragging');
       document.getElementById('dragGhost').style.display = 'none';
       document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
-      zDragItem = null; zDragSource = null; zDragList = null;
+      zDragType = null; zDragItem = null; zDragSource = null; zDragList = null;
     });
     // Context menu
     el.addEventListener('contextmenu', e => showZeroCtx(e, el.dataset.personId));
   });
 
+  // Client drag
+  document.querySelectorAll('#zeroView .client-tag[draggable]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      zDragType = 'client';
+      zDragSource = el.dataset.team;
+      const team = zeroData.teams.find(t => t.id === zDragSource);
+      zDragItem = team ? (team.clients||[]).find(c => c.id === el.dataset.clientId) : null;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', el.dataset.clientId);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(d=>d.classList.remove('drag-over'));
+      zDragType = null; zDragItem = null; zDragSource = null;
+    });
+  });
+
   document.querySelectorAll('#zeroView .people-list').forEach(zone => {
-    zone.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
+    zone.addEventListener('dragover', e => { if (zDragType!=='person') return; e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
     zone.addEventListener('drop', e => {
       e.preventDefault(); zone.classList.remove('drag-over');
-      if (!zDragItem) return;
+      if (zDragType !== 'person' || !zDragItem) return;
       saveState();
       const tgtTeam = zone.dataset.team;
       const tgtList = zone.dataset.list;
@@ -2435,6 +2454,30 @@ function attachZeroDrag() {
       renderZero(); saveZero();
       const tgtName = tgtTeam === '__zpool' ? 'Removed' : (zeroData.teams.find(t=>t.id===tgtTeam)?.name || tgtTeam);
       showToast(zDragItem.name + ' → ' + tgtName);
+    });
+  });
+
+  // Client drop zones
+  document.querySelectorAll('#zeroView .clients-list').forEach(zone => {
+    zone.addEventListener('dragover', e => { if (zDragType !== 'client') return; e.preventDefault(); e.dataTransfer.dropEffect='move'; zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if (zDragType !== 'client' || !zDragItem) return;
+      const tgtTeam = zone.dataset.team;
+      const tgtType = zone.dataset.clientType || 'retainer';
+      if (tgtTeam === zDragSource && zDragItem.type === tgtType) return;
+      saveState();
+      const src = zeroData.teams.find(t=>t.id===zDragSource);
+      if (src) src.clients = (src.clients||[]).filter(c => c.id !== zDragItem.id);
+      zDragItem.type = tgtType;
+      const tgt = zeroData.teams.find(t=>t.id===tgtTeam);
+      if (tgt) {
+        if (!tgt.clients) tgt.clients = [];
+        tgt.clients.push(zDragItem);
+      }
+      renderZero(); saveZero();
+      showToast(zDragItem.name + ' → ' + (tgt?.name || tgtTeam) + ' (' + tgtType + ')');
     });
   });
 
