@@ -1660,9 +1660,15 @@ let scopeAssignments = {};
 let activeScope = null;
 let scopePoolFilter = '';
 
+const ZERO_AUTH_TTL_MS = 10 * 60 * 1000;
+function isZeroAuthed() {
+  const ts = parseInt(sessionStorage.getItem('bbdo_zero_auth') || '0', 10);
+  return ts > 0 && (Date.now() - ts) < ZERO_AUTH_TTL_MS;
+}
 function switchTab(tab) {
-  // Gate zero base behind its own password
-  if (tab === 'zero' && sessionStorage.getItem('bbdo_zero_auth') !== '1') {
+  // Gate zero base behind its own password (10 min expiry)
+  if (tab === 'zero' && !isZeroAuthed()) {
+    sessionStorage.removeItem('bbdo_zero_auth');
     document.getElementById('zeroPwGate').classList.add('show');
     setTimeout(() => document.getElementById('zeroPwInput').focus(), 50);
     return;
@@ -1698,7 +1704,7 @@ async function checkZeroPw() {
   const val = document.getElementById('zeroPwInput').value;
   const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val)))].map(b=>b.toString(16).padStart(2,'0')).join('');
   if (hash === '6a32a2fbdcfc5f6b0738e412231a78b41170d7aada2b3b099d232dcbbd1262b2') {
-    sessionStorage.setItem('bbdo_zero_auth','1');
+    sessionStorage.setItem('bbdo_zero_auth', String(Date.now()));
     document.getElementById('zeroPwGate').classList.remove('show');
     document.getElementById('zeroPwInput').value = '';
     document.getElementById('zeroPwError').classList.remove('show');
@@ -2612,6 +2618,14 @@ document.addEventListener('keydown', e => {
     }
   });
 
+  // Auto-lock Zero Base when the 10-min session expires
+  setInterval(() => {
+    if (activeTab === 'zero' && !isZeroAuthed()) {
+      sessionStorage.removeItem('bbdo_zero_auth');
+      switchTab('org');
+    }
+  }, 30 * 1000);
+
   // Real-time listener for zero base
   db.ref('zeroBase').on('value', snap => {
     if (suppressRemoteUpdate) return;
@@ -2625,7 +2639,7 @@ document.addEventListener('keydown', e => {
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 7;
+  const APP_VERSION = 8;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val()) {
     await db.ref('appVersion').set(APP_VERSION);
