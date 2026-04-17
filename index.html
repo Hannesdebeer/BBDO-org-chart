@@ -2641,7 +2641,7 @@ document.addEventListener('keydown', e => {
   // Force refresh when a new code version is deployed
   const APP_VERSION = 8;
   const vSnap = await db.ref('appVersion').once('value');
-  if (!vSnap.val()) {
+  if (!vSnap.val() || vSnap.val() < APP_VERSION) {
     await db.ref('appVersion').set(APP_VERSION);
   } else if (vSnap.val() > APP_VERSION) {
     sessionStorage.removeItem('bbdo_auth'); window.location.href = window.location.pathname + '?v=' + Date.now();
