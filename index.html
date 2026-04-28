@@ -2643,7 +2643,7 @@ document.addEventListener('keydown', e => {
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 9;
+  const APP_VERSION = 10;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val() || vSnap.val() < APP_VERSION) {
     await db.ref('appVersion').set(APP_VERSION);
@@ -2686,7 +2686,7 @@ async function hashPw(pw) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
   return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-const PW_HASH = 'abc1f97dbf54439b627cf6d046159ef9a17443e24ef991cd265eb93051b94c7b';
+const PW_HASH = 'be6d37f5921d804945cbb1427094eca71cca16c06196afb9819577fa687421c4';
 async function checkPw() {
   const val = document.getElementById('pwInput').value;
   if (await hashPw(val) === PW_HASH) {
