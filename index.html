@@ -496,6 +496,8 @@
   <button class="btn tab-btn active-tab" id="tabOrg" onclick="switchTab('org')">Org Chart</button>
   <button class="btn tab-btn" id="tabZero" onclick="switchTab('zero')">Zero Base</button>
   <button class="btn tab-btn" id="tabScopes" onclick="switchTab('scopes')">Scopes</button>
+  <button class="btn tab-btn" onclick="location.href='rana.html'">Rana</button>
+  <button class="btn tab-btn" onclick="location.href='satyen.html'">Satyen</button>
   <div class="toolbar-sep"></div>
   <button class="btn" id="undoBtn" disabled onclick="undo()">↩ Undo <kbd>⌘Z</kbd></button>
   <button class="btn" id="diffBtn" onclick="toggleDiff()">◑ Before / After</button>
@@ -2643,7 +2645,7 @@ document.addEventListener('keydown', e => {
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 10;
+  const APP_VERSION = 11;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val() || vSnap.val() < APP_VERSION) {
     await db.ref('appVersion').set(APP_VERSION);
