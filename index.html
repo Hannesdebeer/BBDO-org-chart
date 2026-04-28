@@ -28,8 +28,7 @@
   .zero-pw-gate .pw-error.show{opacity:1;}
   .zero-pw-gate .pw-cancel{color:#55556b;font-size:11px;margin-top:14px;cursor:pointer;}
   .zero-pw-gate .pw-cancel:hover{color:#e8e8ed;}
-  .app-wrap{display:none;}
-  .app-wrap.unlocked{display:contents;}
+  .app-wrap{display:contents;}
 </style>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -479,14 +478,6 @@
 </style>
 </head>
 <body>
-
-<!-- Password Gate -->
-<div class="pw-gate" id="pwGate">
-  <h1>BBDO Creative Department</h1>
-  <input type="password" id="pwInput" placeholder="Enter password" autofocus
-    onkeydown="if(event.key==='Enter')checkPw()">
-  <div class="pw-error" id="pwError">Wrong password</div>
-</div>
 
 <div class="app-wrap" id="appWrap">
 <!-- Toolbar -->
@@ -2645,7 +2636,7 @@ document.addEventListener('keydown', e => {
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 11;
+  const APP_VERSION = 12;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val() || vSnap.val() < APP_VERSION) {
     await db.ref('appVersion').set(APP_VERSION);
@@ -2682,29 +2673,5 @@ document.addEventListener('keydown', e => {
   </div>
 </div>
 
-<script>
-// Password gate — hash check so password isn't plain text in source
-async function hashPw(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-const PW_HASH = 'be6d37f5921d804945cbb1427094eca71cca16c06196afb9819577fa687421c4';
-async function checkPw() {
-  const val = document.getElementById('pwInput').value;
-  if (await hashPw(val) === PW_HASH) {
-    sessionStorage.setItem('bbdo_auth','1');
-    document.getElementById('pwGate').classList.add('hidden');
-    document.getElementById('appWrap').classList.add('unlocked');
-  } else {
-    document.getElementById('pwError').classList.add('show');
-    document.getElementById('pwInput').value = '';
-  }
-}
-// Auto-unlock if already authenticated this session
-if (sessionStorage.getItem('bbdo_auth') === '1') {
-  document.getElementById('pwGate').classList.add('hidden');
-  document.getElementById('appWrap').classList.add('unlocked');
-}
-</script>
 </body>
 </html>
