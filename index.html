@@ -475,6 +475,25 @@
 
   .tab-btn { position:relative; }
   .tab-btn.active-tab { background:var(--accent); color:#fff; border-color:var(--accent); }
+  /* ABC matrix */
+  .abc-header { display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border); }
+  .abc-summary { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px; }
+  .abc-summary-block { padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);font-size:11px; }
+  .abc-summary-block .abc-summary-title { font-weight:600;margin-bottom:6px;color:var(--text); }
+  .abc-summary-block .abc-tier { margin-right:4px; }
+  .abc-table { width:100%;border-collapse:collapse;font-size:12px;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden; }
+  .abc-table th,.abc-table td { padding:7px 12px;text-align:left;border-bottom:1px solid var(--border); }
+  .abc-table tr:last-child td { border-bottom:none; }
+  .abc-table th { font-size:10px;text-transform:uppercase;color:var(--text-dim);background:var(--bg);position:sticky;top:0;z-index:1;letter-spacing:0.4px; }
+  .abc-table tbody tr:hover { background:rgba(99,102,241,0.04); }
+  .abc-tier { display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;font-size:10px;color:#fff;min-width:24px;text-align:center; }
+  .abc-tier.tier-A { background:#ec4899; }
+  .abc-tier.tier-Aplus { background:#06b6d4; }
+  .abc-tier.tier-B { background:#10b981; }
+  .abc-tier.tier-C { background:#f59e0b; }
+  .abc-tier.tier-none { background:transparent;color:var(--text-dim);font-weight:400; }
+  .abc-row.conflict td:first-child { box-shadow:inset 3px 0 0 #ef4444; }
+  .abc-row.unanimous td:first-child { box-shadow:inset 3px 0 0 #10b981; }
 </style>
 </head>
 <body>
@@ -487,6 +506,7 @@
   <button class="btn tab-btn active-tab" id="tabOrg" onclick="switchTab('org')">Org Chart</button>
   <button class="btn tab-btn" id="tabZero" onclick="switchTab('zero')">Zero Base</button>
   <button class="btn tab-btn" id="tabScopes" onclick="switchTab('scopes')">Scopes</button>
+  <button class="btn tab-btn" id="tabABC" onclick="switchTab('abc')">ABC</button>
   <button class="btn tab-btn" onclick="location.href='rana.html'">Rana</button>
   <button class="btn tab-btn" onclick="location.href='satyen.html'">Satyen</button>
   <div class="toolbar-sep"></div>
@@ -581,6 +601,31 @@
     </div>
   </div>
   <div class="board" id="zeroBoard"></div>
+</div>
+
+<!-- ABC Comparison View -->
+<div id="abcView" style="display:none;padding:16px 24px;overflow:auto;height:calc(100vh - 60px);">
+  <div class="abc-header">
+    <h3 style="margin:0;">ABC — Combined Evaluations</h3>
+    <span style="font-size:11px;color:var(--text-dim);">Hannes (Zero Base) · Rana · Satyen</span>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <label style="font-size:11px;display:flex;gap:6px;align-items:center;cursor:pointer;">
+        <input type="checkbox" id="abcConflictsOnly" onchange="renderABC()"> Only disagreements
+      </label>
+      <label style="font-size:11px;display:flex;gap:6px;align-items:center;cursor:pointer;">
+        <input type="checkbox" id="abcAgreeOnly" onchange="renderABC()"> Only unanimous
+      </label>
+      <select id="abcSortBy" onchange="renderABC()" style="font-size:11px;padding:4px 8px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+        <option value="name">Sort: Name</option>
+        <option value="hannes">Sort: Hannes tier</option>
+        <option value="rana">Sort: Rana tier</option>
+        <option value="satyen">Sort: Satyen tier</option>
+      </select>
+      <button class="btn" onclick="loadABCData(true)">↻ Refresh</button>
+    </div>
+  </div>
+  <div id="abcSummary"></div>
+  <div id="abcMatrix"></div>
 </div>
 
 <!-- Overlays -->
@@ -1674,12 +1719,14 @@ function switchTab(tab) {
   const orgEls = [document.getElementById('filterBar'), document.getElementById('snapshotBar'), document.getElementById('mainView')];
   const scopesView = document.getElementById('scopesView');
   const zeroView = document.getElementById('zeroView');
-  const tabs = {tabOrg:'org', tabZero:'zero', tabScopes:'scopes'};
+  const abcView = document.getElementById('abcView');
+  const tabs = {tabOrg:'org', tabZero:'zero', tabScopes:'scopes', tabABC:'abc'};
 
   // Hide all
   orgEls.forEach(el => el.classList.add('hidden'));
   scopesView.classList.remove('active');
   zeroView.classList.remove('active');
+  abcView.style.display = 'none';
   Object.keys(tabs).forEach(id => document.getElementById(id).classList.remove('active-tab'));
 
   if (tab === 'scopes') {
@@ -1691,10 +1738,150 @@ function switchTab(tab) {
     zeroView.classList.add('active');
     document.getElementById('tabZero').classList.add('active-tab');
     renderZero();
+  } else if (tab === 'abc') {
+    abcView.style.display = 'block';
+    document.getElementById('tabABC').classList.add('active-tab');
+    loadABCData(false);
   } else {
     orgEls.forEach(el => el.classList.remove('hidden'));
     document.getElementById('tabOrg').classList.add('active-tab');
   }
+}
+
+// ═══════════════════════════════════════
+// ABC — combined A/B/C evaluations across Hannes (zeroBase), Rana, Satyen
+// ═══════════════════════════════════════
+const ABC_FB_PATHS = { hannes: 'zeroBase', rana: 'orgchart-rana', satyen: 'orgchart-satyen' };
+const ABC_TIERS = ['A+','A','B','C'];
+const ABC_TIER_ORDER = { 'A+':0, 'A':1, 'B':2, 'C':3, '':4 };
+// Manual aliases for known name variants across the three datasets
+const ABC_NAME_ALIASES = {
+  'raph': 'raphael',
+  'leo p': 'leo',
+  'jean luce': 'jean luc',
+  'sarah': 'sarah forbes'
+};
+let abcData = null;
+
+function abcNormName(s) {
+  const n = (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  return ABC_NAME_ALIASES[n] || n;
+}
+
+function abcTierClass(t) { return t === 'A+' ? 'tier-Aplus' : ('tier-' + t); }
+
+function abcTierCell(t) {
+  return t ? `<span class="abc-tier ${abcTierClass(t)}">${t}</span>` : '<span class="abc-tier tier-none">—</span>';
+}
+
+async function loadABCData(force) {
+  if (abcData && !force) { renderABC(); return; }
+  document.getElementById('abcMatrix').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-dim);font-size:12px;">Loading…</div>';
+  document.getElementById('abcSummary').innerHTML = '';
+  const out = {};
+  for (const [k, path] of Object.entries(ABC_FB_PATHS)) {
+    const snap = await db.ref(path + '/teams').once('value');
+    out[k] = snap.val() || [];
+  }
+  abcData = out;
+  renderABC();
+}
+
+function abcBuildIndex() {
+  const idx = { hannes: {}, rana: {}, satyen: {} };
+  for (const evalr of Object.keys(idx)) {
+    const teams = abcData[evalr] || [];
+    for (const team of teams) {
+      if (!team || !ABC_TIERS.includes(team.name)) continue;
+      const tier = team.name;
+      const people = [...(team.leaders || []), ...(team.members || [])];
+      for (const p of people) {
+        if (!p || !p.name) continue;
+        const k = abcNormName(p.name);
+        // Prefer A+/A over B/C if a name somehow appears in two tiers for the same evaluator
+        if (!idx[evalr][k] || ABC_TIER_ORDER[tier] < ABC_TIER_ORDER[idx[evalr][k].tier]) {
+          idx[evalr][k] = { tier, role: p.role || '', displayName: p.name };
+        }
+      }
+    }
+  }
+  return idx;
+}
+
+function abcSummaryCounts(evalr) {
+  const out = { 'A+':0, 'A':0, 'B':0, 'C':0 };
+  const teams = abcData[evalr] || [];
+  for (const t of teams) {
+    if (!t || !ABC_TIERS.includes(t.name)) continue;
+    out[t.name] += (t.leaders?.length || 0) + (t.members?.length || 0);
+  }
+  return out;
+}
+
+function renderABC() {
+  if (!abcData) return;
+  const idx = abcBuildIndex();
+  const allKeys = new Set([...Object.keys(idx.hannes), ...Object.keys(idx.rana), ...Object.keys(idx.satyen)]);
+
+  const conflictsOnly = document.getElementById('abcConflictsOnly').checked;
+  const agreeOnly = document.getElementById('abcAgreeOnly').checked;
+  const sortBy = document.getElementById('abcSortBy').value;
+
+  let rows = [...allKeys].map(k => {
+    const h = idx.hannes[k], r = idx.rana[k], s = idx.satyen[k];
+    const display = h?.displayName || r?.displayName || s?.displayName || k;
+    const role = h?.role || r?.role || s?.role || '';
+    const tiers = [h?.tier || '', r?.tier || '', s?.tier || ''];
+    const present = tiers.filter(Boolean);
+    const conflict = present.length > 1 && new Set(present).size > 1;
+    const unanimous = present.length >= 2 && new Set(present).size === 1;
+    return { display, role, tiers, conflict, unanimous };
+  });
+
+  if (conflictsOnly) rows = rows.filter(x => x.conflict);
+  if (agreeOnly) rows = rows.filter(x => x.unanimous);
+
+  rows.sort((a, b) => {
+    if (sortBy === 'name') return a.display.localeCompare(b.display);
+    const colIdx = { hannes: 0, rana: 1, satyen: 2 }[sortBy];
+    const diff = ABC_TIER_ORDER[a.tiers[colIdx] || ''] - ABC_TIER_ORDER[b.tiers[colIdx] || ''];
+    return diff !== 0 ? diff : a.display.localeCompare(b.display);
+  });
+
+  // Summary
+  const sH = abcSummaryCounts('hannes'), sR = abcSummaryCounts('rana'), sS = abcSummaryCounts('satyen');
+  const sumBlock = (label, s) => {
+    const chips = ABC_TIERS.filter(t => s[t]).map(t => `<span class="abc-tier ${abcTierClass(t)}">${t} ${s[t]}</span>`).join(' ');
+    return `<div class="abc-summary-block"><div class="abc-summary-title">${label}</div>${chips || '<span style="color:var(--text-dim);">none</span>'}</div>`;
+  };
+  document.getElementById('abcSummary').innerHTML =
+    `<div class="abc-summary">${sumBlock('Hannes (Zero Base)', sH)}${sumBlock('Rana', sR)}${sumBlock('Satyen', sS)}</div>`;
+
+  // Matrix
+  if (!rows.length) {
+    document.getElementById('abcMatrix').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-dim);font-size:12px;">No rows match the current filter.</div>';
+    return;
+  }
+  const body = rows.map(r => {
+    const cls = r.conflict ? 'conflict' : (r.unanimous ? 'unanimous' : '');
+    return `<tr class="abc-row ${cls}">
+      <td style="font-weight:600;">${r.display}</td>
+      <td style="color:var(--text-dim);font-size:11px;">${r.role}</td>
+      <td>${abcTierCell(r.tiers[0])}</td>
+      <td>${abcTierCell(r.tiers[1])}</td>
+      <td>${abcTierCell(r.tiers[2])}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('abcMatrix').innerHTML =
+    `<table class="abc-table">
+      <thead><tr><th>Person</th><th>Role</th><th>Hannes</th><th>Rana</th><th>Satyen</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">
+      <span style="display:inline-block;width:8px;height:8px;background:#ef4444;vertical-align:middle;margin-right:4px;"></span> red bar = evaluators disagree
+      &nbsp;&nbsp;
+      <span style="display:inline-block;width:8px;height:8px;background:#10b981;vertical-align:middle;margin-right:4px;"></span> green bar = 2+ evaluators agree
+    </div>`;
 }
 
 async function checkZeroPw() {
@@ -2636,7 +2823,7 @@ document.addEventListener('keydown', e => {
   });
 
   // Force refresh when a new code version is deployed
-  const APP_VERSION = 12;
+  const APP_VERSION = 13;
   const vSnap = await db.ref('appVersion').once('value');
   if (!vSnap.val() || vSnap.val() < APP_VERSION) {
     await db.ref('appVersion').set(APP_VERSION);
